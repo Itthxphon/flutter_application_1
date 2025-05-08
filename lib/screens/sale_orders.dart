@@ -127,15 +127,15 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'เลขที่คำสั่งขาย: $orderNo',
+                              'เลขที่คำสั่งขาย : $orderNo',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                               ),
                             ),
                             const SizedBox(height: 8),
-                            Text('วันที่: $date'),
-                            Text('ชื่อลูกค้า: $customer'),
+                            Text('วันที่ : $date'),
+                            Text('ชื่อลูกค้า : $customer'),
                             const SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,

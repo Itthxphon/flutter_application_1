@@ -73,10 +73,9 @@ class _PickingListScreenState extends State<PickingListScreen> {
         'F_ProductId': item['F_ProductId'],
         'F_Index': item['F_Index'],
         'F_Qty': item['F_Qty'],
+        'F_Location': item['F_Location'] ?? '',
       },
-    ).then((_) {
-      _loadItems(); // Refresh ข้อมูลหลังจากกลับมา
-    });
+    ).then((_) => _loadItems());
   }
 
   bool _isSelected(String productId, String index) {
@@ -113,7 +112,7 @@ class _PickingListScreenState extends State<PickingListScreen> {
                     ? const Center(
                       child: Text(
                         'ไม่พบข้อมูลในใบสั่ง',
-                        style: TextStyle(fontSize: 16, color: Colors.black54),
+                        style: TextStyle(fontSize: 16),
                       ),
                     )
                     : ListView.builder(
@@ -134,10 +133,7 @@ class _PickingListScreenState extends State<PickingListScreen> {
                           productId,
                           item['F_Index'].toString(),
                         );
-                        final statusText =
-                            item['F_CheckSNStatus'] == 1
-                                ? '✅ ตรวจครบแล้ว'
-                                : '⏳ รอสแกน';
+                        final isComplete = remaining <= 0;
 
                         return Container(
                           margin: const EdgeInsets.only(bottom: 16),
@@ -158,24 +154,66 @@ class _PickingListScreenState extends State<PickingListScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              Text('จำนวนที่ต้องสแกน: $qty'),
-                              Text('ยิง SN แล้ว: $scanned'),
-                              Text('ยังไม่ได้ยิง: $remaining'),
-                              Text('สถานะ: $statusText'),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 14), // ✅ เพิ่มระยะห่าง
+                              Text('จำนวนที่ต้องสแกน : $qty'),
+                              const SizedBox(height: 4),
+                              Text('แสกน SN แล้ว : $scanned'),
+                              const SizedBox(height: 4),
+                              Text('ยังไม่ได้แสกน : $remaining'),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Text('สถานะ :  '),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 5,
+                                      vertical: 6,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        // ✅ ใช้ Emoji แทน Icon
+                                        Text(
+                                          isComplete ? '✅' : '⌛',
+                                          style: const TextStyle(fontSize: 16),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          isComplete ? 'ตรวจครบแล้ว' : 'รอสแกน',
+                                          style: TextStyle(
+                                            color:
+                                                isComplete
+                                                    ? Colors.green
+                                                    : Colors.orange,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: ElevatedButton(
-                                  onPressed: () => _selectItemAndNavigate(item),
+                                  onPressed:
+                                      isComplete
+                                          ? null
+                                          : () => _selectItemAndNavigate(item),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor:
-                                        isSelected
-                                            ? Colors.green
-                                            : const Color(0xFF1A1A2E),
+                                        isComplete
+                                            ? Colors.grey
+                                            : (isSelected
+                                                ? Colors.green
+                                                : const Color(0xFF1A1A2E)),
                                   ),
                                   child: Text(
-                                    isSelected ? '✅ กำลังสแกน...' : 'เลือกสแกน',
+                                    isComplete
+                                        ? '✅ แสกนครบแล้ว'
+                                        : (isSelected
+                                            ? '✅ กำลังแสกน...'
+                                            : 'เลือกสแกน'),
                                   ),
                                 ),
                               ),
