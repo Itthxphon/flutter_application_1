@@ -48,7 +48,15 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
       MaterialPageRoute(
         builder: (context) => PickingListScreen(orderNo: saleOrderNo),
       ),
-    );
+    ).then((_) {
+      _orders = ApiService.getOrders();
+      _orders.then((data) {
+        setState(() {
+          allOrders = data;
+          filteredOrders = data;
+        });
+      });
+    });
   }
 
   @override

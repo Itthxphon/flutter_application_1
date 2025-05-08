@@ -117,9 +117,9 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
           children: [
             _buildInfoCard(scanned, remaining, isComplete),
             const SizedBox(height: 16),
-            if (!isComplete) _buildSNInput(), // ✅ ถ้าแสกนครบแล้วจะไม่โชว์
+            if (!isComplete) _buildSNInput(),
             const SizedBox(height: 16),
-            Expanded(child: _buildScannedList()), // ✅ scroll ได้
+            Expanded(child: _buildScannedList()),
           ],
         ),
       ),
@@ -128,7 +128,7 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
 
   Widget _buildInfoCard(int scanned, int remaining, bool isComplete) {
     return Container(
-      width: double.infinity, // ✅ เต็มหน้าจอ
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -146,20 +146,49 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
           Text('สแกนแล้ว : $scanned'),
           Text('ยังไม่ได้สแกน : $remaining'),
           const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: isComplete ? Colors.green[100] : Colors.red[100],
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              isComplete ? '✅ สแกนครบแล้ว' : '⌛ รอสแกน SN',
-              style: TextStyle(
-                color: isComplete ? Colors.green : Colors.red,
-                fontWeight: FontWeight.bold,
+          isComplete
+              ? Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEFEBF2),
+                  borderRadius: BorderRadius.circular(32),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.check_box, color: Color(0xFF00C853), size: 18),
+                    SizedBox(width: 6),
+                    Text(
+                      'สแกนครบแล้ว',
+                      style: TextStyle(
+                        color: Color(0xFF4A148C),
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+              : Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 248, 235, 236),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  '⌛ รอสแกน SN',
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 238, 86, 75),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            ),
-          ),
         ],
       ),
     );
@@ -202,34 +231,47 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
         ),
         const SizedBox(height: 8),
         Expanded(
-          child: ListView.builder(
-            itemCount: scannedSNs.length,
-            itemBuilder: (context, index) {
-              final sn = scannedSNs[index];
-              return Row(
-                children: [
-                  Text(
-                    '${index + 1}. ',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 6),
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: const Color.fromARGB(255, 226, 221, 221),
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                        color: Colors.grey[50],
-                      ),
-                      child: Text(sn),
+          child:
+              scannedSNs.isEmpty
+                  ? const Center(
+                    child: Text(
+                      'ไม่มีรายการที่สแกน',
+                      style: TextStyle(color: Colors.grey),
                     ),
+                  )
+                  : ListView.builder(
+                    itemCount: scannedSNs.length,
+                    itemBuilder: (context, index) {
+                      final sn = scannedSNs[index];
+                      return Row(
+                        children: [
+                          Text(
+                            '${index + 1}. ',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Expanded(
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 6),
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: const Color.fromARGB(
+                                    255,
+                                    226,
+                                    221,
+                                    221,
+                                  ),
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                                color: Colors.grey[50],
+                              ),
+                              child: Text(sn),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
-                ],
-              );
-            },
-          ),
         ),
       ],
     );
