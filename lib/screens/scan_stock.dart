@@ -55,7 +55,7 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
     if (sn.isEmpty) return;
 
     if (scannedSNs.contains(sn)) {
-      _showAlert('⚠️ Serial Number ซ้ำ', 'SN นี้ถูกสแกนไปแล้ว');
+      _showAlert('⚠️ SN ซ้ำ', 'SN นี้ถูกสแกนไปแล้ว');
       return;
     }
 
@@ -70,21 +70,12 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
 
     setState(() => isLoading = false);
 
-    debugPrint(result.toString()); // ✅ เพิ่มดูค่าจาก API
-
-    final success = result['success'].toString().toLowerCase() == 'true';
-
-    if (success) {
+    if (result['success'] == true) {
       _snController.clear();
       await _loadScannedSNs();
-      _showAlert('✅ สำเร็จ', result['message'] ?? 'สแกน SN สำเร็จแล้ว');
+      _showAlert('✅ สำเร็จ', 'สแกน SN สำเร็จแล้ว');
     } else {
-      final message = result['message'] ?? 'ไม่สามารถสแกนได้';
-      final isDuplicate = message.toString().toLowerCase().contains(
-        'duplicate',
-      );
-      final title = isDuplicate ? '⚠️ Serial Number ซ้ำ' : '❌ ผิดพลาด';
-      _showAlert(title, message);
+      _showAlert('❌ ผิดพลาด', result['message'] ?? 'ไม่สามารถสแกนได้');
     }
   }
 
@@ -109,42 +100,38 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
   Widget build(BuildContext context) {
     final scanned = scannedSNs.length;
     final remaining = widget.qty - scanned;
+    final isComplete = remaining <= 0;
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        title: const Text('รายการสินค้า'),
         backgroundColor: const Color(0xFF1A1A2E),
         foregroundColor: Colors.white,
-        title: const Text(
-          'รายการสินค้า',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        leading: const BackButton(),
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInfoCard(scanned, remaining),
-            const SizedBox(height: 24),
-            _buildSNInput(),
-            const SizedBox(height: 12),
-            _buildScannedBox(),
+            _buildInfoCard(scanned, remaining, isComplete),
+            const SizedBox(height: 16),
+            if (!isComplete) _buildSNInput(), // ✅ ถ้าแสกนครบแล้วจะไม่โชว์
+            const SizedBox(height: 16),
+            Expanded(child: _buildScannedList()), // ✅ scroll ได้
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoCard(int scanned, int remaining) {
+  Widget _buildInfoCard(int scanned, int remaining, bool isComplete) {
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,19 +141,21 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           Text('จำนวน: ${widget.qty}'),
-          const SizedBox(height: 8),
           Text('ยิงแล้ว: $scanned'),
-          Text('ยังไม่ได้ยิง: $remaining'),
+          Text('ยังไม่ได้ยิง: ${widget.qty - scanned}'),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.red[100],
+              color: isComplete ? Colors.green[100] : Colors.red[100],
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text(
-              '⏳ รอเช็ค SN',
-              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            child: Text(
+              isComplete ? '✅ ตรวจครบแล้ว' : '⌛ รอเช็ค SN',
+              style: TextStyle(
+                color: isComplete ? Colors.green : Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -201,42 +190,41 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
     );
   }
 
-  Widget _buildScannedBox() {
-    if (scannedSNs.isEmpty) return const SizedBox();
-
+  Widget _buildScannedList() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 20),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'SN ที่สแกนแล้ว:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              ...scannedSNs.map(
-                (sn) => Container(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  padding: const EdgeInsets.all(10),
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade400),
-                    borderRadius: BorderRadius.circular(8),
-                    color: Colors.grey[50],
+        const Text(
+          'SN ที่สแกนแล้ว:',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: ListView.builder(
+            itemCount: scannedSNs.length,
+            itemBuilder: (context, index) {
+              final sn = scannedSNs[index];
+              return Row(
+                children: [
+                  Text(
+                    '${index + 1}. ',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  child: Text(sn),
-                ),
-              ),
-            ],
+                  Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 6),
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade400),
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.grey[50],
+                      ),
+                      child: Text(sn),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ],

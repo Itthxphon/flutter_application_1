@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/main_navigation_screen.dart';
-import 'screens/scan_stock.dart';
+import 'screens/scan_stock.dart'; // ✅ ตรวจสอบให้ path นี้ถูกต้องจริง ๆ
 
 void main() {
   runApp(const MyApp());
@@ -17,17 +17,21 @@ class MyApp extends StatelessWidget {
       onGenerateRoute: (settings) {
         if (settings.name == '/scan') {
           final args = settings.arguments as Map<String, dynamic>;
+
           return MaterialPageRoute(
             builder:
                 (context) => ScanStockScreen(
-                  saleOrderNo: args['F_SaleOrderNo'],
-                  productId: args['F_ProductId'],
-                  index: args['F_Index'],
+                  saleOrderNo: args['F_SaleOrderNo'] ?? '',
+                  productId: args['F_ProductId'] ?? '',
+                  index:
+                      args['F_Index'] is int
+                          ? args['F_Index']
+                          : int.tryParse(args['F_Index'].toString()) ?? 0,
                   qty:
                       args['F_Qty'] is int
                           ? args['F_Qty']
                           : int.tryParse(args['F_Qty'].toString()) ?? 0,
-                  location: args['F_Location'] ?? '', // ✅ location (optional)
+                  location: args['F_Location'] ?? '',
                 ),
           );
         }
