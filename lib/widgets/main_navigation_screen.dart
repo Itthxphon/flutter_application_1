@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'sale_orders.dart';
-import 'scan_history.dart'; // หน้าประวัติการสแกน
+import '../screens/sale_orders.dart';
+import '../screens/scan_history.dart'; // หน้าประวัติการสแกน
 
 class MainNavigationScreen extends StatefulWidget {
   final int initialIndex;
@@ -39,9 +39,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           _titles[_currentIndex],
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
+        centerTitle: true, // ✅ ทำให้ชื่ออยู่ตรงกลาง
         backgroundColor: const Color(0xFF1A1A2E),
         foregroundColor: Colors.white,
       ),
+
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,

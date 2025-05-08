@@ -89,6 +89,7 @@ class _PickingListScreenState extends State<PickingListScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
         title: Text('สินค้าในใบสั่ง ${widget.orderNo}'),
+        centerTitle: true,
         foregroundColor: Colors.white,
       ),
       body: Column(
@@ -154,7 +155,7 @@ class _PickingListScreenState extends State<PickingListScreen> {
                                 const SizedBox(height: 14),
                                 Text('จำนวนที่ต้องสแกน : $qty'),
                                 const SizedBox(height: 4),
-                                Text('แสกน SN แล้ว : $scanned'),
+                                Text('สแกน SN แล้ว : $scanned'),
                                 const SizedBox(height: 4),
                                 Text('ยังไม่ได้สแกน : $remaining'),
                                 const SizedBox(height: 4),
@@ -182,14 +183,29 @@ class _PickingListScreenState extends State<PickingListScreen> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor:
                                           isComplete
-                                              ? Colors.grey
+                                              ? const Color.fromARGB(
+                                                255,
+                                                240,
+                                                233,
+                                                233,
+                                              )
                                               : (isSelected
-                                                  ? Colors.green
-                                                  : const Color(0xFF1A1A2E)),
+                                                  ? const Color.fromARGB(
+                                                    255,
+                                                    197,
+                                                    239,
+                                                    198,
+                                                  )
+                                                  : const Color.fromARGB(
+                                                    255,
+                                                    255,
+                                                    255,
+                                                    255,
+                                                  )),
                                     ),
                                     child: Text(
                                       isComplete
-                                          ? '✅ แสกนครบแล้ว'
+                                          ? '✅ สแกนครบแล้ว'
                                           : (isSelected
                                               ? '✅ กำลังสแกน...'
                                               : 'เลือกสแกน'),

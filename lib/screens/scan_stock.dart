@@ -106,6 +106,7 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text('รายการสินค้า'),
+        centerTitle: true,
         backgroundColor: const Color(0xFF1A1A2E),
         foregroundColor: Colors.white,
       ),
@@ -127,22 +128,23 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
 
   Widget _buildInfoCard(int scanned, int remaining, bool isComplete) {
     return Container(
+      width: double.infinity, // ✅ เต็มหน้าจอ
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'รหัสสินค้า: ${widget.productId}',
+            'รหัสสินค้า : ${widget.productId}',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          Text('จำนวน: ${widget.qty}'),
-          Text('ยิงแล้ว: $scanned'),
-          Text('ยังไม่ได้ยิง: ${widget.qty - scanned}'),
+          Text('จำนวน : ${widget.qty}'),
+          Text('สแกนแล้ว : $scanned'),
+          Text('ยังไม่ได้สแกน : $remaining'),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -151,7 +153,7 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              isComplete ? '✅ ตรวจครบแล้ว' : '⌛ รอเช็ค SN',
+              isComplete ? '✅ สแกนครบแล้ว' : '⌛ รอสแกน SN',
               style: TextStyle(
                 color: isComplete ? Colors.green : Colors.red,
                 fontWeight: FontWeight.bold,
@@ -215,7 +217,9 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
                       margin: const EdgeInsets.only(bottom: 6),
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade400),
+                        border: Border.all(
+                          color: const Color.fromARGB(255, 226, 221, 221),
+                        ),
                         borderRadius: BorderRadius.circular(8),
                         color: Colors.grey[50],
                       ),

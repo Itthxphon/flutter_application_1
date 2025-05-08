@@ -47,12 +47,6 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: const Text('ประวัติการสแกน'),
-        foregroundColor: Colors.white,
-      ),
       body: Column(
         children: [
           Padding(
@@ -91,7 +85,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'SN: ${sn['F_ProductSN']}',
+                                '${index + 1}. SN: ${sn['F_ProductSN']}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,

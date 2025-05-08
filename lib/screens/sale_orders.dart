@@ -54,12 +54,6 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: const Text('คำสั่งขาย'),
-        foregroundColor: Colors.white,
-      ),
       body: Column(
         children: [
           Padding(
@@ -141,7 +135,7 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text(
-                                  'วันที่จัดส่ง',
+                                  'วันที่ต้องจัดส่ง',
                                   style: TextStyle(fontWeight: FontWeight.w500),
                                 ),
                                 Text(sendDate),
@@ -167,7 +161,15 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                                     ? '✅ ตรวจสอบ SN ครบแล้ว'
                                     : '⏳ รอตรวจสอบ SN',
                                 style: TextStyle(
-                                  color: isChecked ? Colors.green : Colors.red,
+                                  color:
+                                      isChecked
+                                          ? Colors.green
+                                          : const Color.fromARGB(
+                                            255,
+                                            243,
+                                            78,
+                                            66,
+                                          ),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
