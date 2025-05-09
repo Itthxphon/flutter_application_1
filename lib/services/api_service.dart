@@ -70,7 +70,7 @@ class ApiService {
     required String productSN,
   }) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl//delete-scanned'),
+      Uri.parse('$baseUrl/delete-scanned'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'saleOrderNo': saleOrderNo,

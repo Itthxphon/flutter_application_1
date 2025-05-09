@@ -46,7 +46,7 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
             .toList();
 
     setState(() {
-      scannedSNs = filtered;
+      scannedSNs = filtered.reversed.toList(); // SN ล่าสุดอยู่บนสุด
     });
   }
 
@@ -71,15 +71,57 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
     setState(() => isLoading = false);
 
     if (result['success'] == true) {
-      // แสดง SN ที่สแกนแล้วทันที
       setState(() {
-        scannedSNs.add(sn); // เพิ่ม SN ที่สแกนไปในรายการ
+        scannedSNs.insert(0, sn); // เพิ่มบนสุด
+        _snController.clear();
       });
-      // ไม่แสดง Alert สำเร็จ
     } else {
-      // แสดง Alert เมื่อมีปัญหา
       _showAlert('❌ ผิดพลาด', result['message'] ?? 'ไม่สามารถสแกนได้');
     }
+  }
+
+  Future<void> _deleteSN(String sn) async {
+    setState(() => isLoading = true);
+
+    final result = await ApiService.deleteScannedSN(
+      saleOrderNo: widget.saleOrderNo,
+      productId: widget.productId,
+      index: widget.index,
+      productSN: sn,
+    );
+
+    if (result['success'] == true) {
+      await _loadScannedSNs(); // โหลดจากฐานข้อมูลจริง
+      _showAlert('✅ ลบสำเร็จ', 'ลบ SN เรียบร้อยแล้ว');
+    } else {
+      _showAlert('❌ ผิดพลาด', result['message'] ?? 'ไม่สามารถลบได้');
+    }
+
+    setState(() => isLoading = false);
+  }
+
+  void _confirmDeleteSN(String sn) {
+    showDialog(
+      context: context,
+      builder:
+          (_) => AlertDialog(
+            title: const Text('⚠️ ยืนยันการลบ'),
+            content: Text('คุณต้องการลบ SN นี้หรือไม่?\n\n$sn'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('กลับ'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _deleteSN(sn);
+                },
+                child: const Text('ลบ', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+    );
   }
 
   void _showAlert(String title, String message) {
@@ -105,27 +147,36 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
     final remaining = widget.qty - scanned;
     final isComplete = remaining <= 0;
 
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text('รายการสินค้า'),
-        centerTitle: true,
-        backgroundColor: const Color(0xFF1A1A2E),
-        foregroundColor: Colors.white,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildInfoCard(scanned, remaining, isComplete),
-            const SizedBox(height: 16),
-            if (!isComplete) _buildSNInput(),
-            const SizedBox(height: 16),
-            Expanded(child: _buildScannedList()),
-          ],
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: Colors.grey[100],
+          appBar: AppBar(
+            title: const Text('รายการสินค้า'),
+            centerTitle: true,
+            backgroundColor: const Color(0xFF1A1A2E),
+            foregroundColor: Colors.white,
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoCard(scanned, remaining, isComplete),
+                const SizedBox(height: 16),
+                if (!isComplete) _buildSNInput(),
+                const SizedBox(height: 16),
+                Expanded(child: _buildScannedList()),
+              ],
+            ),
+          ),
         ),
-      ),
+        if (isLoading)
+          Container(
+            color: Colors.black.withOpacity(0.3),
+            child: const Center(child: CircularProgressIndicator()),
+          ),
+      ],
     );
   }
 
@@ -166,11 +217,7 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
                     SizedBox(width: 6),
                     Text(
                       'สแกนครบแล้ว',
-                      style: TextStyle(
-                        color: Color(0xFF4A148C),
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal,
-                      ),
+                      style: TextStyle(color: Color(0xFF4A148C), fontSize: 14),
                     ),
                   ],
                 ),
@@ -237,38 +284,37 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
           child:
               scannedSNs.isEmpty
                   ? const Center(child: Text('ไม่มีรายการที่สแกน'))
-                  : ListView.builder(
-                    itemCount: scannedSNs.length,
-                    itemBuilder: (context, index) {
-                      final sn = scannedSNs[index];
-                      return Row(
-                        children: [
-                          Text(
-                            '${index + 1}. ',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Expanded(
-                            child: Container(
-                              margin: const EdgeInsets.only(bottom: 6),
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: const Color.fromARGB(
-                                    255,
-                                    226,
-                                    221,
-                                    221,
+                  : Scrollbar(
+                    thumbVisibility: true,
+                    child: ListView.builder(
+                      itemCount: scannedSNs.length,
+                      itemBuilder: (context, index) {
+                        final sn = scannedSNs[index];
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(vertical: 6),
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
                                   ),
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: Colors.grey[50],
                                 ),
-                                borderRadius: BorderRadius.circular(8),
-                                color: Colors.grey[50],
+                                child: Text(sn),
                               ),
-                              child: Text(sn),
                             ),
-                          ),
-                        ],
-                      );
-                    },
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _confirmDeleteSN(sn),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ),
         ),
       ],
