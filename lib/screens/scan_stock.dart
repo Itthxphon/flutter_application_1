@@ -1,5 +1,5 @@
 import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart'; // ✅ ใช้สำหรับ kIsWeb
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -59,12 +59,39 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
     final sn = _snController.text.trim();
     if (sn.isEmpty) return;
 
-    if (scannedSNs.contains(sn)) {
-      _showAlert('⚠️ SN ซ้ำ', 'SN นี้ถูกสแกนไปแล้ว');
+    setState(() => isLoading = true);
+
+    final allSNs = await ApiService.getAllScannedSNs();
+
+    final duplicateInSameItem = allSNs.any(
+      (s) =>
+          s['F_ProductSN'].toString() == sn &&
+          s['F_SaleOrderNo'] == widget.saleOrderNo &&
+          s['F_ProductId'] == widget.productId &&
+          s['F_Index'].toString() == widget.index.toString(),
+    );
+
+    if (duplicateInSameItem) {
+      _snController.clear();
+      setState(() => isLoading = false);
+      _showAlert('⚠️ SN ซ้ำ', 'Serial Number นี้ถูกสแกนไปแล้ว');
       return;
     }
 
-    setState(() => isLoading = true);
+    final duplicateInOtherItem = allSNs.any(
+      (s) =>
+          s['F_ProductSN'].toString() == sn &&
+          !(s['F_SaleOrderNo'] == widget.saleOrderNo &&
+              s['F_ProductId'] == widget.productId &&
+              s['F_Index'].toString() == widget.index.toString()),
+    );
+
+    if (duplicateInOtherItem) {
+      _snController.clear();
+      setState(() => isLoading = false);
+      _showAlert('❌ ผิดพลาด', 'ไม่สามารถสแกนได้');
+      return;
+    }
 
     final result = await ApiService.scanSN(
       saleOrderNo: widget.saleOrderNo,
@@ -159,16 +186,17 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
       },
       child: BarcodeKeyboardListener(
         bufferDuration: const Duration(milliseconds: 200),
-        useKeyDownEvent:
-            !kIsWeb && Platform.isWindows, // ✅ ป้องกัน crash บน Web
+        useKeyDownEvent: !kIsWeb && Platform.isWindows,
         onBarcodeScanned: (barcode) {
           if (!visible || barcode.isEmpty) return;
+          FocusScope.of(context).unfocus(); // ✅ ปิดแป้นพิมพ์
           _snController.text = barcode;
           _submitSN();
         },
         child: Stack(
           children: [
             Scaffold(
+              resizeToAvoidBottomInset: false, // ✅ ป้องกัน overflow
               backgroundColor: Colors.grey[100],
               appBar: AppBar(
                 title: const Text('รายการสินค้า'),
@@ -176,7 +204,7 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
                 backgroundColor: const Color(0xFF1A1A2E),
                 foregroundColor: Colors.white,
               ),
-              body: Padding(
+              body: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,7 +213,12 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
                     const SizedBox(height: 16),
                     if (!isComplete) _buildSNInput(),
                     const SizedBox(height: 16),
-                    Expanded(child: _buildScannedList()),
+                    SizedBox(
+                      height:
+                          MediaQuery.of(context).size.height *
+                          0.4, // ✅ จำกัด list
+                      child: _buildScannedList(),
+                    ),
                   ],
                 ),
               ),
