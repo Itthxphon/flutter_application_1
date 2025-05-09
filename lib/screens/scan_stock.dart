@@ -71,10 +71,13 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
     setState(() => isLoading = false);
 
     if (result['success'] == true) {
-      _snController.clear();
-      await _loadScannedSNs();
-      _showAlert('✅ สำเร็จ', 'สแกน SN สำเร็จแล้ว');
+      // แสดง SN ที่สแกนแล้วทันที
+      setState(() {
+        scannedSNs.add(sn); // เพิ่ม SN ที่สแกนไปในรายการ
+      });
+      // ไม่แสดง Alert สำเร็จ
     } else {
+      // แสดง Alert เมื่อมีปัญหา
       _showAlert('❌ ผิดพลาด', result['message'] ?? 'ไม่สามารถสแกนได้');
     }
   }
@@ -233,12 +236,7 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
         Expanded(
           child:
               scannedSNs.isEmpty
-                  ? const Center(
-                    child: Text(
-                      'ไม่มีรายการที่สแกน',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  )
+                  ? const Center(child: Text('ไม่มีรายการที่สแกน'))
                   : ListView.builder(
                     itemCount: scannedSNs.length,
                     itemBuilder: (context, index) {
