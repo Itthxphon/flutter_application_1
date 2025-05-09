@@ -146,13 +146,25 @@ class _PickingListScreenState extends State<PickingListScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // แสดงรหัสสินค้าและชื่อสินค้าในบรรทัดแยกกัน
                                 Text(
-                                  '$productId - $description',
+                                  'รหัสสินค้า : ${productId}',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                const SizedBox(height: 14),
+                                const SizedBox(
+                                  height: 4,
+                                ), // ระยะห่างระหว่างบรรทัด
+                                Text(
+                                  'ชื่อสินค้า : ${description}', // หรือใช้ชื่อสินค้าจริง
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 14,
+                                ), // ระยะห่างระหว่างข้อมูลอื่น ๆ
                                 Text('จำนวนที่ต้องสแกน : $qty'),
                                 const SizedBox(height: 4),
                                 Text('สแกน SN แล้ว : $scanned'),
