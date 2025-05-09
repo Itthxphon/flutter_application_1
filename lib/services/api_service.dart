@@ -62,4 +62,24 @@ class ApiService {
       throw Exception('Failed to load picking list');
     }
   }
+
+  static Future<Map<String, dynamic>> deleteScannedSN({
+    required String saleOrderNo,
+    required String productId,
+    required int index,
+    required String productSN,
+  }) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl//delete-scanned'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'saleOrderNo': saleOrderNo,
+        'productId': productId,
+        'index': index,
+        'productSN': productSN,
+      }),
+    );
+
+    return jsonDecode(response.body);
+  }
 }

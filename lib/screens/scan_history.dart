@@ -85,15 +85,15 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${index + 1}. SN: ${sn['F_ProductSN']}',
+                                '${index + 1}. SN : ${sn['F_ProductSN']}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                 ),
                               ),
-                              Text('รหัสสินค้า: ${sn['F_ProductId']}'),
-                              Text('เลขที่คำสั่งขาย: ${sn['F_SaleOrderNo']}'),
-                              Text('ลำดับ: ${sn['F_Index']}'),
+                              Text('รหัสสินค้า : ${sn['F_ProductId']}'),
+                              Text('เลขที่คำสั่งขาย : ${sn['F_SaleOrderNo']}'),
+                              Text('ลำดับ : ${sn['F_Index']}'),
                             ],
                           ),
                         );
