@@ -69,7 +69,7 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
             child: TextField(
               onChanged: _filterOrders,
               decoration: InputDecoration(
-                hintText: 'ค้นหาสินค้า หรือ คำอธิบาย',
+                hintText: 'ค้นหาสินค้า หรือคำอธิบาย',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),

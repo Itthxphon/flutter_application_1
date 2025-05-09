@@ -98,7 +98,7 @@ class _PickingListScreenState extends State<PickingListScreen> {
             padding: const EdgeInsets.all(12),
             child: TextField(
               decoration: InputDecoration(
-                hintText: 'ค้นหารหัสสินค้า หรือ ชื่อสินค้า',
+                hintText: 'ค้นหารหัสสินค้า หรือชื่อสินค้า',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -153,11 +153,9 @@ class _PickingListScreenState extends State<PickingListScreen> {
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                const SizedBox(
-                                  height: 4,
-                                ), // ระยะห่างระหว่างบรรทัด
+                                const SizedBox(height: 4),
                                 Text(
-                                  'ชื่อสินค้า : ${description}', // หรือใช้ชื่อสินค้าจริง
+                                  'ชื่อสินค้า : ${description}',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),
