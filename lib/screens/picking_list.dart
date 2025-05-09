@@ -98,7 +98,7 @@ class _PickingListScreenState extends State<PickingListScreen> {
             padding: const EdgeInsets.all(12),
             child: TextField(
               decoration: InputDecoration(
-                hintText: 'ค้นหาสินค้าหรือคำอธิบาย',
+                hintText: 'ค้นหารหัสสินค้า หรือ ชื่อสินค้า',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
