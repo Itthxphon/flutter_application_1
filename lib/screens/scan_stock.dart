@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart'; // ✅ ใช้สำหรับ kIsWeb
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -153,7 +154,7 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
       },
       child: BarcodeKeyboardListener(
         bufferDuration: const Duration(milliseconds: 200),
-        useKeyDownEvent: Platform.isWindows,
+        useKeyDownEvent: !kIsWeb && Platform.isWindows, // ✅ ป้องกัน crash บน Web
         onBarcodeScanned: (barcode) {
           if (!visible || barcode.isEmpty) return;
           _snController.text = barcode;
