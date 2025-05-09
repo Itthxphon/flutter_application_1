@@ -57,6 +57,7 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
     if (sn.isEmpty) return;
 
     if (scannedSNs.contains(sn)) {
+      _snController.clear(); // ✅ เคลียร์ช่องเมื่อ SN ซ้ำ
       _showAlert('⚠️ SN ซ้ำ', 'SN นี้ถูกสแกนไปแล้ว');
       return;
     }
@@ -75,12 +76,14 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
     if (result['success'] == true) {
       setState(() {
         scannedSNs.insert(0, sn);
-        _snController.clear();
+        _snController.clear(); // ✅ เคลียร์เมื่อสำเร็จ
       });
     } else {
+      _snController.clear(); // ✅ เคลียร์ช่องเมื่อเกิดข้อผิดพลาด
       _showAlert('❌ ผิดพลาด', result['message'] ?? 'ไม่สามารถสแกนได้');
     }
   }
+
 
   Future<void> _deleteSN(String sn) async {
     setState(() => isLoading = true);
