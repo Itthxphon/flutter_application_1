@@ -14,15 +14,20 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
   List<dynamic> allOrders = [];
   List<dynamic> filteredOrders = [];
   String searchText = '';
+  String? selectedColor;
 
   @override
   void initState() {
     super.initState();
-    _orders = ApiService.getOrders();
+    _fetchOrders();
+  }
+
+  void _fetchOrders() {
+    _orders = ApiService.getOrders(color: selectedColor);
     _orders.then((data) {
       setState(() {
         allOrders = data;
-        filteredOrders = data;
+        _filterOrders(searchText);
       });
     });
   }
@@ -30,15 +35,11 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
   void _filterOrders(String query) {
     setState(() {
       searchText = query;
-      filteredOrders =
-          allOrders.where((order) {
-            final orderNo =
-                (order['F_SaleOrderNo'] ?? '').toString().toLowerCase();
-            final customer =
-                (order['F_CustomerName'] ?? '').toString().toLowerCase();
-            return orderNo.contains(query.toLowerCase()) ||
-                customer.contains(query.toLowerCase());
-          }).toList();
+      filteredOrders = allOrders.where((order) {
+        final orderNo = (order['F_SaleOrderNo'] ?? '').toString().toLowerCase();
+        final customer = (order['F_CustomerName'] ?? '').toString().toLowerCase();
+        return orderNo.contains(query.toLowerCase()) || customer.contains(query.toLowerCase());
+      }).toList();
     });
   }
 
@@ -49,13 +50,7 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
         builder: (context) => PickingListScreen(orderNo: saleOrderNo),
       ),
     ).then((_) {
-      _orders = ApiService.getOrders();
-      _orders.then((data) {
-        setState(() {
-          allOrders = data;
-          filteredOrders = data;
-        });
-      });
+      _fetchOrders();
     });
   }
 
@@ -77,6 +72,40 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
               ),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: DropdownButtonFormField<String>(
+              value: selectedColor,
+              decoration: InputDecoration(
+                labelText: 'กรองตามสีวันที่จัดส่ง',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              items: <String?>[
+                null,
+                'red',
+                'yellow',
+                'pink',
+                'blue',
+                'purple',
+                'lightsky',
+                'brown',
+                'lightgreen',
+                'green'
+              ]
+                  .map((color) => DropdownMenuItem(
+                value: color,
+                child: Text(color == null ? 'ทั้งหมด' : color),
+              ))
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedColor = value;
+                  _fetchOrders();
+                });
+              },
+            ),
+          ),
+          const SizedBox(height: 8),
           Expanded(
             child: FutureBuilder<List<dynamic>>(
               future: _orders,
@@ -102,12 +131,11 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                     final order = orders[index];
                     final orderNo = order['F_SaleOrderNo'] ?? '-';
                     final customer = order['F_CustomerName'] ?? '-';
-                    final date =
-                        (order['F_Date'] ?? '').toString().split('T').first;
-                    final sendDate =
-                        (order['F_SendDate'] ?? '').toString().split('T').first;
+                    final date = (order['F_Date'] ?? '').toString().split('T').first;
+                    final sendDate = (order['F_SendDate'] ?? '').toString().split('T').first;
                     final checkStatus = order['F_CheckSNStatus'];
                     final isChecked = checkStatus == 1 || checkStatus == '1';
+                    final color = order['color'] ?? '';
 
                     return GestureDetector(
                       onTap: () => _navigateToPickingList(orderNo),
@@ -124,6 +152,12 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                               offset: Offset(0, 3),
                             ),
                           ],
+                          border: Border(
+                            left: BorderSide(
+                              width: 6,
+                              color: _mapColor(color),
+                            ),
+                          ),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,43 +175,28 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                             const SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
+                              children: const [
+                                Text(
                                   'วันที่ต้องจัดส่ง',
                                   style: TextStyle(fontWeight: FontWeight.w500),
                                 ),
-                                Text(sendDate),
+                                // Already shown below
                               ],
                             ),
+                            Text(sendDate),
                             const SizedBox(height: 12),
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color:
-                                    isChecked
-                                        ? Colors.green.withOpacity(0.1)
-                                        : const Color(
-                                          0xFFFFC1C1,
-                                        ).withOpacity(0.3),
+                                color: isChecked
+                                    ? Colors.green.withOpacity(0.1)
+                                    : const Color(0xFFFFC1C1).withOpacity(0.3),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                isChecked
-                                    ? '✅ ตรวจสอบ SN ครบแล้ว'
-                                    : '⏳ รอตรวจสอบ SN',
+                                isChecked ? '✅ ตรวจสอบ SN ครบแล้ว' : '⏳ รอตรวจสอบ SN',
                                 style: TextStyle(
-                                  color:
-                                      isChecked
-                                          ? Colors.green
-                                          : const Color.fromARGB(
-                                            255,
-                                            243,
-                                            78,
-                                            66,
-                                          ),
+                                  color: isChecked ? Colors.green : const Color.fromARGB(255, 243, 78, 66),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -194,5 +213,30 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
         ],
       ),
     );
+  }
+
+  Color _mapColor(String color) {
+    switch (color) {
+      case 'red':
+        return Colors.red;
+      case 'yellow':
+        return Colors.yellow;
+      case 'pink':
+        return Colors.pink;
+      case 'blue':
+        return Colors.blue;
+      case 'purple':
+        return Colors.purple;
+      case 'lightsky':
+        return Colors.lightBlueAccent;
+      case 'brown':
+        return Colors.brown;
+      case 'lightgreen':
+        return Colors.lightGreen;
+      case 'green':
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
   }
 }
