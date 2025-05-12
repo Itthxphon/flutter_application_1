@@ -39,13 +39,16 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
 
   Future<void> _loadScannedSNs() async {
     final allSNs = await ApiService.getAllScannedSNs();
-    final filtered = allSNs
-        .where((sn) =>
-    sn['F_SaleOrderNo'] == widget.saleOrderNo &&
-        sn['F_ProductId'] == widget.productId &&
-        sn['F_Index'].toString() == widget.index.toString())
-        .map((e) => e['F_ProductSN'].toString())
-        .toList();
+    final filtered =
+        allSNs
+            .where(
+              (sn) =>
+                  sn['F_SaleOrderNo'] == widget.saleOrderNo &&
+                  sn['F_ProductId'] == widget.productId &&
+                  sn['F_Index'].toString() == widget.index.toString(),
+            )
+            .map((e) => e['F_ProductSN'].toString())
+            .toList();
 
     setState(() {
       scannedSNs = filtered.reversed.toList();
@@ -84,7 +87,6 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
     }
   }
 
-
   Future<void> _deleteSN(String sn) async {
     setState(() => isLoading = true);
 
@@ -108,39 +110,41 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
   void _confirmDeleteSN(String sn) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('⚠️ ยืนยันการลบ'),
-        content: Text('คุณต้องการลบ SN นี้หรือไม่?\n\n$sn'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('กลับ'),
+      builder:
+          (_) => AlertDialog(
+            title: const Text('⚠️ ยืนยันการลบ'),
+            content: Text('คุณต้องการลบ SN นี้หรือไม่?\n\n$sn'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('กลับ'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _deleteSN(sn);
+                },
+                child: const Text('ลบ', style: TextStyle(color: Colors.red)),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _deleteSN(sn);
-            },
-            child: const Text('ลบ', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
     );
   }
 
   void _showAlert(String title, String message) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('ตกลง'),
+      builder:
+          (_) => AlertDialog(
+            title: Text(title),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('ตกลง'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -157,7 +161,8 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
       },
       child: BarcodeKeyboardListener(
         bufferDuration: const Duration(milliseconds: 200),
-        useKeyDownEvent: !kIsWeb && Platform.isWindows, // ✅ ป้องกัน crash บน Web
+        useKeyDownEvent:
+            !kIsWeb && Platform.isWindows, // ✅ ป้องกัน crash บน Web
         onBarcodeScanned: (barcode) {
           if (!visible || barcode.isEmpty) return;
           _snController.text = barcode;
@@ -210,7 +215,10 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('รหัสสินค้า : ${widget.productId}', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            'รหัสสินค้า : ${widget.productId}',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           Text('จำนวน : ${widget.qty}'),
           Text('สแกนแล้ว : $scanned'),
           Text('ยังไม่ได้สแกน : $remaining'),
@@ -247,7 +255,7 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
         TextField(
           controller: _snController,
           decoration: InputDecoration(
-            hintText: 'กรอกหรือสแกน Serial Number',
+            hintText: 'กรอก หรือสแกน Serial Number',
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -272,41 +280,47 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('SN ที่สแกนแล้ว:', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text(
+          'SN ที่สแกนแล้ว:',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 8),
         Expanded(
-          child: scannedSNs.isEmpty
-              ? const Center(child: Text('ไม่มีรายการที่สแกน'))
-              : Scrollbar(
-            thumbVisibility: true,
-            child: ListView.builder(
-              itemCount: scannedSNs.length,
-              itemBuilder: (context, index) {
-                final sn = scannedSNs[index];
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 6),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(8),
-                          color: Colors.grey[50],
-                        ),
-                        child: Text(sn),
-                      ),
+          child:
+              scannedSNs.isEmpty
+                  ? const Center(child: Text('ไม่มีรายการที่สแกน'))
+                  : Scrollbar(
+                    thumbVisibility: true,
+                    child: ListView.builder(
+                      itemCount: scannedSNs.length,
+                      itemBuilder: (context, index) {
+                        final sn = scannedSNs[index];
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(vertical: 6),
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: Colors.grey[50],
+                                ),
+                                child: Text(sn),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _confirmDeleteSN(sn),
+                            ),
+                          ],
+                        );
+                      },
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _confirmDeleteSN(sn),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
+                  ),
         ),
       ],
     );
