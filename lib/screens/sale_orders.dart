@@ -35,15 +35,11 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
   void _filterOrders(String query) {
     setState(() {
       searchText = query;
-      filteredOrders =
-          allOrders.where((order) {
-            final orderNo =
-                (order['F_SaleOrderNo'] ?? '').toString().toLowerCase();
-            final customer =
-                (order['F_CustomerName'] ?? '').toString().toLowerCase();
-            return orderNo.contains(query.toLowerCase()) ||
-                customer.contains(query.toLowerCase());
-          }).toList();
+      filteredOrders = allOrders.where((order) {
+        final orderNo = (order['F_SaleOrderNo'] ?? '').toString().toLowerCase();
+        final customer = (order['F_CustomerName'] ?? '').toString().toLowerCase();
+        return orderNo.contains(query.toLowerCase()) || customer.contains(query.toLowerCase());
+      }).toList();
     });
   }
 
@@ -86,26 +82,25 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              items:
-                  <String?>[
-                        null,
-                        'red',
-                        'yellow',
-                        'pink',
-                        'blue',
-                        'purple',
-                        'lightsky',
-                        'brown',
-                        'lightgreen',
-                        'green',
-                      ]
-                      .map(
-                        (color) => DropdownMenuItem(
-                          value: color,
-                          child: Text(color == null ? 'ทั้งหมด' : color),
-                        ),
-                      )
-                      .toList(),
+              items: <String?>[
+                null,
+                'red',
+                'yellow',
+                'pink',
+                'blue',
+                'purple',
+                'lightsky',
+                'brown',
+                'lightgreen',
+                'green',
+              ]
+                  .map(
+                    (color) => DropdownMenuItem(
+                  value: color,
+                  child: Text(color == null ? 'ทั้งหมด' : color),
+                ),
+              )
+                  .toList(),
               onChanged: (value) {
                 setState(() {
                   selectedColor = value;
@@ -140,11 +135,11 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                     final order = orders[index];
                     final orderNo = order['F_SaleOrderNo'] ?? '-';
                     final customer = order['F_CustomerName'] ?? '-';
-                    final sendDate =
-                        (order['F_SendDate'] ?? '').toString().split('T').first;
+                    final sendDate = (order['F_SendDate'] ?? '').toString().split('T').first;
                     final checkStatus = order['F_CheckSNStatus'];
                     final isChecked = checkStatus == 1 || checkStatus == '1';
                     final color = order['color'] ?? '';
+                    final itemCount = order['itemCount'] ?? 0;
 
                     return GestureDetector(
                       onTap: () => _navigateToPickingList(orderNo),
@@ -180,6 +175,10 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                               'ชื่อลูกค้า : $customer',
                               style: const TextStyle(fontSize: 13),
                             ),
+                            Text(
+                              'จำนวนสินค้า : $itemCount',
+                              style: const TextStyle(fontSize: 13),
+                            ),
                             const SizedBox(height: 6),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -199,34 +198,18 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                             ),
                             const SizedBox(height: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color:
-                                    isChecked
-                                        ? Colors.green.withOpacity(0.1)
-                                        : const Color(
-                                          0xFFFFC1C1,
-                                        ).withOpacity(0.3),
+                                color: isChecked
+                                    ? Colors.green.withOpacity(0.1)
+                                    : const Color(0xFFFFC1C1).withOpacity(0.3),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Text(
-                                isChecked
-                                    ? '✅ ตรวจสอบ SN ครบแล้ว'
-                                    : '⏳ รอตรวจสอบ SN',
+                                isChecked ? '✅ ตรวจสอบ SN ครบแล้ว' : '⏳ รอตรวจสอบ SN',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color:
-                                      isChecked
-                                          ? Colors.green
-                                          : const Color.fromARGB(
-                                            255,
-                                            243,
-                                            78,
-                                            66,
-                                          ),
+                                  color: isChecked ? Colors.green : const Color.fromARGB(255, 243, 78, 66),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
