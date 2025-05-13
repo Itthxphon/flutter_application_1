@@ -115,6 +115,7 @@ class _PickingListScreenState extends State<PickingListScreen> {
                 final remaining = (qty is int ? qty : int.tryParse(qty.toString()) ?? 0) - scanned;
                 final isSelected = _isSelected(productId, item['F_Index'].toString());
                 final isComplete = remaining <= 0;
+                final imagePath = item['imagePath'] ?? '';
 
                 return GestureDetector(
                   onTap: () => _navigateToScanScreen(item),
@@ -131,13 +132,36 @@ class _PickingListScreenState extends State<PickingListScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // รวมรหัส + ชื่อสินค้าใน 1 บรรทัด
-                        Text(
-                          '$productId - $description',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
+                        Row(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                imagePath,
+                                height: 80,
+                                width: 80,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Image.asset(
+                                    'assets/images/no_image.png',
+                                    height: 80,
+                                    width: 80,
+                                    fit: BoxFit.cover,
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                '$productId - $description',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 6),
                         Row(
