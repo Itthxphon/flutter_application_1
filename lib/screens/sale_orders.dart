@@ -91,12 +91,10 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                 'brown',
                 'lightgreen',
                 'green'
-              ]
-                  .map((color) => DropdownMenuItem(
+              ].map((color) => DropdownMenuItem(
                 value: color,
                 child: Text(color == null ? 'ทั้งหมด' : color),
-              ))
-                  .toList(),
+              )).toList(),
               onChanged: (value) {
                 setState(() {
                   selectedColor = value;
@@ -125,13 +123,12 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12),
                   itemCount: orders.length,
                   itemBuilder: (context, index) {
                     final order = orders[index];
                     final orderNo = order['F_SaleOrderNo'] ?? '-';
                     final customer = order['F_CustomerName'] ?? '-';
-                    final date = (order['F_Date'] ?? '').toString().split('T').first;
                     final sendDate = (order['F_SendDate'] ?? '').toString().split('T').first;
                     final checkStatus = order['F_CheckSNStatus'];
                     final isChecked = checkStatus == 1 || checkStatus == '1';
@@ -140,21 +137,21 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                     return GestureDetector(
                       onTap: () => _navigateToPickingList(orderNo),
                       child: Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        padding: const EdgeInsets.all(16),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                           boxShadow: const [
                             BoxShadow(
                               color: Colors.black12,
-                              blurRadius: 6,
-                              offset: Offset(0, 3),
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
                             ),
                           ],
                           border: Border(
                             left: BorderSide(
-                              width: 6,
+                              width: 5,
                               color: _mapColor(color),
                             ),
                           ),
@@ -163,39 +160,44 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'เลขที่คำสั่งขาย : $orderNo',
+                              '$orderNo',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: 14,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text('วันที่ : $date'),
-                            Text('ชื่อลูกค้า : $customer'),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 4),
+                            Text(
+                              'ชื่อลูกค้า : $customer',
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                            const SizedBox(height: 6),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: const [
-                                Text(
+                              children: [
+                                const Text(
                                   'วันที่ต้องจัดส่ง',
-                                  style: TextStyle(fontWeight: FontWeight.w500),
+                                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
                                 ),
-                                // Already shown below
+                                Text(
+                                  sendDate,
+                                  style: const TextStyle(fontSize: 13),
+                                ),
                               ],
                             ),
-                            Text(sendDate),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
                                 color: isChecked
                                     ? Colors.green.withOpacity(0.1)
                                     : const Color(0xFFFFC1C1).withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(16),
                               ),
                               child: Text(
                                 isChecked ? '✅ ตรวจสอบ SN ครบแล้ว' : '⏳ รอตรวจสอบ SN',
                                 style: TextStyle(
+                                  fontSize: 12,
                                   color: isChecked ? Colors.green : const Color.fromARGB(255, 243, 78, 66),
                                   fontWeight: FontWeight.bold,
                                 ),

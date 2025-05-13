@@ -211,9 +211,9 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('รหัสสินค้า : ${widget.productId}', style: const TextStyle(fontWeight: FontWeight.bold)),
-          Text('จำนวน : ${widget.qty}'),
-          Text('สแกนแล้ว : $scanned'),
-          Text('ยังไม่ได้สแกน : $remaining'),
+          Text('จำนวนเบิก : ${widget.qty}'),
+          Text('ยิง SN แล้ว : $scanned'),
+          Text('ยังไม่ยิง : $remaining'),
           const SizedBox(height: 8),
           isComplete
               ? _statusTag('สแกนครบแล้ว', Colors.green)

@@ -28,15 +28,10 @@ class _PickingListScreenState extends State<PickingListScreen> {
     final scanned = await ApiService.getAllScannedSNs();
 
     for (var item in items) {
-      final count =
-          scanned
-              .where(
-                (s) =>
-                    s['F_SaleOrderNo'] == item['F_SaleOrderNo'] &&
-                    s['F_ProductId'] == item['F_ProductId'] &&
-                    s['F_Index'].toString() == item['F_Index'].toString(),
-              )
-              .length;
+      final count = scanned.where((s) =>
+      s['F_SaleOrderNo'] == item['F_SaleOrderNo'] &&
+          s['F_ProductId'] == item['F_ProductId'] &&
+          s['F_Index'].toString() == item['F_Index'].toString()).length;
       item['scannedCount'] = count;
     }
 
@@ -49,13 +44,11 @@ class _PickingListScreenState extends State<PickingListScreen> {
   void _filterItems(String keyword) {
     setState(() {
       searchKeyword = keyword;
-      filteredItems =
-          allItems.where((item) {
-            final id = item['F_ProductId'].toString().toLowerCase();
-            final desc = item['F_Desciption'].toString().toLowerCase();
-            return id.contains(keyword.toLowerCase()) ||
-                desc.contains(keyword.toLowerCase());
-          }).toList();
+      filteredItems = allItems.where((item) {
+        final id = item['F_ProductId'].toString().toLowerCase();
+        final desc = item['F_Desciption'].toString().toLowerCase();
+        return id.contains(keyword.toLowerCase()) || desc.contains(keyword.toLowerCase());
+      }).toList();
     });
   }
 
@@ -108,128 +101,97 @@ class _PickingListScreenState extends State<PickingListScreen> {
             ),
           ),
           Expanded(
-            child:
-                filteredItems.isEmpty
-                    ? const Center(child: Text('ไม่พบข้อมูลในใบสั่ง'))
-                    : ListView.builder(
-                      padding: const EdgeInsets.all(12),
-                      itemCount: filteredItems.length,
-                      itemBuilder: (context, index) {
-                        final item = filteredItems[index];
-                        final productId = item['F_ProductId'] ?? '-';
-                        final description = item['F_Desciption'] ?? '-';
-                        final qty = item['F_Qty'] ?? 0;
-                        final scanned = item['scannedCount'] ?? 0;
-                        final remaining =
-                            (qty is int
-                                ? qty
-                                : int.tryParse(qty.toString()) ?? 0) -
-                            scanned;
-                        final isSelected = _isSelected(
-                          productId,
-                          item['F_Index'].toString(),
-                        );
-                        final isComplete = remaining <= 0;
+            child: filteredItems.isEmpty
+                ? const Center(child: Text('ไม่พบข้อมูลในใบสั่ง'))
+                : ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: filteredItems.length,
+              itemBuilder: (context, index) {
+                final item = filteredItems[index];
+                final productId = item['F_ProductId'] ?? '-';
+                final description = item['F_Desciption'] ?? '-';
+                final qty = item['F_Qty'] ?? 0;
+                final scanned = item['scannedCount'] ?? 0;
+                final remaining = (qty is int ? qty : int.tryParse(qty.toString()) ?? 0) - scanned;
+                final isSelected = _isSelected(productId, item['F_Index'].toString());
+                final isComplete = remaining <= 0;
 
-                        return GestureDetector(
-                          onTap: () => _navigateToScanScreen(item),
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 16),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: const [
-                                BoxShadow(color: Colors.black12, blurRadius: 4),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // แสดงรหัสสินค้าและชื่อสินค้าในบรรทัดแยกกัน
-                                Text(
-                                  'รหัสสินค้า : $productId',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 4,
-                                ), // ระยะห่างระหว่างบรรทัด
-                                Text(
-                                  'ชื่อสินค้า : $description', // หรือใช้ชื่อสินค้าจริง
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 14,
-                                ), // ระยะห่างระหว่างข้อมูลอื่น ๆ
-                                Text('จำนวนที่ต้องสแกน : $qty'),
-                                const SizedBox(height: 4),
-                                Text('สแกน SN แล้ว : $scanned'),
-                                const SizedBox(height: 4),
-                                Text('ยังไม่ได้สแกน : $remaining'),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    const Text('สถานะ :  '),
-                                    Text(
-                                      isComplete ? '✅ ตรวจครบแล้ว' : '⌛ รอสแกน',
-                                      style: TextStyle(
-                                        color:
-                                            isComplete
-                                                ? Colors.green
-                                                : Colors.orange,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: ElevatedButton(
-                                    onPressed:
-                                        () => _navigateToScanScreen(item),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          isComplete
-                                              ? const Color.fromARGB(
-                                                255,
-                                                240,
-                                                233,
-                                                233,
-                                              )
-                                              : (isSelected
-                                                  ? const Color.fromARGB(
-                                                    255,
-                                                    197,
-                                                    239,
-                                                    198,
-                                                  )
-                                                  : const Color.fromARGB(
-                                                    255,
-                                                    255,
-                                                    255,
-                                                    255,
-                                                  )),
-                                    ),
-                                    child: Text(
-                                      isComplete
-                                          ? '✅ สแกนครบแล้ว'
-                                          : (isSelected
-                                              ? '✅ กำลังสแกน...'
-                                              : 'เลือกสแกน'),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+                return GestureDetector(
+                  onTap: () => _navigateToScanScreen(item),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 3),
+                      ],
                     ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // รวมรหัส + ชื่อสินค้าใน 1 บรรทัด
+                        Text(
+                          '$productId - $description',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('จำนวนเบิก: $qty', style: const TextStyle(fontSize: 13)),
+                            Text('ยิงแล้ว: $scanned', style: const TextStyle(fontSize: 13)),
+                            Text('เหลือ: $remaining', style: const TextStyle(fontSize: 13)),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Text('สถานะ: ', style: TextStyle(fontSize: 13)),
+                                Text(
+                                  isComplete ? '✅ ตรวจครบแล้ว' : '⌛ รอสแกน',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: isComplete ? Colors.green : Colors.orange,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            TextButton(
+                              onPressed: () => _navigateToScanScreen(item),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                backgroundColor: isComplete
+                                    ? Colors.grey[200]
+                                    : (isSelected ? Colors.green[100] : Colors.white),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  side: const BorderSide(color: Colors.black12),
+                                ),
+                              ),
+                              child: Text(
+                                isComplete
+                                    ? '✅ ครบแล้ว'
+                                    : (isSelected ? '✅ กำลังสแกน' : 'เลือกสแกน'),
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
