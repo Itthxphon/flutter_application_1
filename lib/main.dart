@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'widgets/main_navigation_screen.dart';
+import 'widgets/navigation.dart';
 import 'screens/scan_stock.dart'; // ✅ ตรวจสอบให้ path นี้ถูกต้องจริง ๆ
 
 void main() {
