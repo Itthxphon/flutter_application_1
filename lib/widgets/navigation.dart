@@ -52,7 +52,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
 
       // ✅ ส่ง selectedColor ไปให้ SaleOrdersScreen ใช้งานจริง
-      body: SaleOrdersScreen(colorFilter: selectedColor),
+      body: SaleOrdersScreen(key: ValueKey(selectedColor),
+          colorFilter: selectedColor),
     );
   }
 
