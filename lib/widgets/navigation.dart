@@ -1,30 +1,35 @@
 import 'package:flutter/material.dart';
 import '../screens/sale_orders.dart';
 
-class MainNavigationScreen extends StatelessWidget {
+class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
+
+  @override
+  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+}
+
+class _MainNavigationScreenState extends State<MainNavigationScreen> {
+  String? selectedColor; // ✅ เก็บค่าสีที่เลือก
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false, // ❌ ไม่แสดงปุ่ม back/hamburger
+        automaticallyImplyLeading: false,
         backgroundColor: const Color(0xFF1A1A2E),
         foregroundColor: Colors.white,
-
-        // ✅ ใช้ Row + Expanded เพื่อจัด layout แบบ "กรอง - ชื่อ - กระดิ่ง"
         title: Row(
           children: [
-            // ✅ [ซ้าย] ปุ่มกรอง
+            // ✅ ปุ่มกรอง (กดแล้วแสดง PopupMenu ด้านล่าง)
             IconButton(
               icon: const Icon(Icons.tune),
               tooltip: 'กรองตามสีวันจัดส่ง',
               onPressed: () {
-                _showColorFilterMenu(context); // ฟังก์ชันแสดง popup กรองสี
+                _showColorFilterMenu(context); // ✅ เปิดเมนูกรอง
               },
             ),
 
-            // ✅ [กลาง] ชื่อ "เช็ค Serial Number"
+            // ✅ ชื่ออยู่ตรงกลาง
             const Expanded(
               child: Center(
                 child: Text(
@@ -34,24 +39,24 @@ class MainNavigationScreen extends StatelessWidget {
               ),
             ),
 
-            // ✅ [ขวา] ปุ่มแจ้งเตือน
+            // ✅ ปุ่มแจ้งเตือน (ไว้เพิ่มฟีเจอร์ในอนาคต)
             IconButton(
               icon: const Icon(Icons.notifications),
               tooltip: 'งานวันนี้ที่ยังไม่ทำ',
               onPressed: () {
-                // 🔔 ใส่ฟังก์ชันแสดงงานของวันนี้ที่ยังไม่ทำ
+                // Future: แสดงรายการงานวันนี้
               },
             ),
           ],
         ),
       ),
 
-      // ✅ [Body] เป็นหน้ารายการใบสั่งขาย
-      body: const SaleOrdersScreen(),
+      // ✅ ส่ง selectedColor ไปให้ SaleOrdersScreen ใช้งานจริง
+      body: SaleOrdersScreen(colorFilter: selectedColor),
     );
   }
 
-  // ✅ เมนูกรองสี (แสดงเมื่อกดไอคอนกรอง)
+  // ✅ เมนู Popup สำหรับเลือกสี
   void _showColorFilterMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -61,18 +66,20 @@ class MainNavigationScreen extends StatelessWidget {
       builder: (context) {
         return Padding(
           padding: const EdgeInsets.all(16),
-          child: Wrap(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
                 'กรองตามสีวันจัดส่ง',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _buildColorFilterOption(context, null, 'ทั้งหมด'),
+                  _buildColorBox(context, null, 'ทั้งหมด'),
                   ...[
                     'red',
                     'yellow',
@@ -84,7 +91,8 @@ class MainNavigationScreen extends StatelessWidget {
                     'lightgreen',
                     'green',
                   ].map(
-                    (color) => _buildColorFilterOption(context, color, color),
+                    (color) =>
+                        _buildColorBox(context, color, _colorLabel(color)),
                   ),
                 ],
               ),
@@ -95,52 +103,99 @@ class MainNavigationScreen extends StatelessWidget {
     );
   }
 
-  // ✅ ปุ่มตัวเลือกแต่ละสี
-  Widget _buildColorFilterOption(
-    BuildContext context,
-    String? color,
-    String label,
-  ) {
-    return ChoiceChip(
-      label: Text(label),
-      selected:
-          false, // ไม่แสดงสถานะเลือกในนี้ (คุณอาจจัดการใน state ที่ SaleOrdersScreen แทน)
-      onSelected: (_) {
-        Navigator.pop(context);
+  // ✅ ปุ่มกรองแต่ละสี (ขนาดเท่ากัน + วงกลมสี)
+  Widget _buildColorBox(BuildContext context, String? colorCode, String label) {
+    final isSelected = selectedColor == colorCode;
 
-        // ✅ ส่งค่าที่เลือกไปยัง SaleOrdersScreen ผ่าน Event หรือ Callback
-        // ในตัวอย่างนี้ยังไม่ได้เชื่อมต่อโดยตรง ต้องใช้ Provider หรือ callback หากต้องการให้ทำงานจริง
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context);
+        setState(() {
+          selectedColor = colorCode; // ✅ เปลี่ยนค่า filter
+        });
       },
-      backgroundColor: Colors.grey[200],
-      selectedColor: Colors.blue.shade100,
-      avatar:
-          color == null
-              ? null
-              : CircleAvatar(backgroundColor: _mapColor(color), radius: 6),
+      child: Container(
+        width: 100,
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade400),
+          borderRadius: BorderRadius.circular(8),
+          color: isSelected ? Colors.blue.shade50 : Colors.white,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            if (colorCode != null)
+              Container(
+                width: 12,
+                height: 12,
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  color: _mapColor(colorCode),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  // ✅ ฟังก์ชันแปลงชื่อสีเป็น Color
+  // ✅ แปลงรหัสสีเป็นชื่อไทย
+  String _colorLabel(String color) {
+    switch (color) {
+      case 'red':
+        return 'แดง';
+      case 'yellow':
+        return 'เหลือง';
+      case 'pink':
+        return 'ชมพู';
+      case 'blue':
+        return 'น้ำเงิน';
+      case 'purple':
+        return 'ม่วง';
+      case 'lightsky':
+        return 'ฟ้า';
+      case 'brown':
+        return 'น้ำตาล';
+      case 'lightgreen':
+        return 'เขียวอ่อน';
+      case 'green':
+        return 'เขียว';
+      default:
+        return color;
+    }
+  }
+
+  // ✅ แปลงรหัสสีเป็น Color จริง (จากภาพตัวอย่างของคุณ)
   Color _mapColor(String color) {
     switch (color) {
       case 'red':
-        return Colors.red;
+        return const Color(0xFFFF3D3D);
       case 'yellow':
-        return Colors.yellow;
+        return const Color(0xFFFFC107);
       case 'pink':
-        return Colors.pink;
+        return const Color(0xFFFF3DF5);
       case 'blue':
-        return Colors.blue;
+        return const Color(0xFF0051FF);
       case 'purple':
-        return Colors.purple;
+        return const Color(0xFF9900CC);
       case 'lightsky':
-        return Colors.lightBlueAccent;
+        return const Color(0xFF90CAF9);
       case 'brown':
-        return Colors.brown;
+        return const Color(0xFF8D6E63);
       case 'lightgreen':
-        return Colors.lightGreen;
+        return const Color(0xFFB2FF59);
       case 'green':
-        return Colors.green;
+        return const Color(0xFF4CAF50);
       default:
         return Colors.grey;
     }

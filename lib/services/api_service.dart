@@ -5,7 +5,9 @@ class ApiService {
   static const baseUrl = 'http://172.16.11.58:3000/api';
 
   static Future<List<dynamic>> getOrders({String? color}) async {
-    final uri = Uri.parse('$baseUrl/orders${color != null ? '?color=$color' : ''}');
+    final uri = Uri.parse(
+      '$baseUrl/orders${color != null ? '?color=$color' : ''}',
+    );
     final response = await http.get(uri);
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
