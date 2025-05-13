@@ -3,7 +3,7 @@ import '../services/api_service.dart';
 import 'picking_list.dart';
 
 class SaleOrdersScreen extends StatefulWidget {
-  final String? colorFilter; // ✅ รับค่ากรองสีจากภายนอก
+  final String? colorFilter;
 
   const SaleOrdersScreen({super.key, this.colorFilter});
 
@@ -24,9 +24,7 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
   }
 
   void _fetchOrders() {
-    _orders = ApiService.getOrders(
-      color: widget.colorFilter,
-    ); // ✅ ใช้ filter สีจากภายนอก
+    _orders = ApiService.getOrders(color: widget.colorFilter);
     _orders.then((data) {
       setState(() {
         allOrders = data;
@@ -80,8 +78,6 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
               ),
             ),
           ),
-
-          // ❌ ลบ Dropdown สีแบบเดิมออกแล้ว (รูปที่ 3)
           const SizedBox(height: 8),
 
           // 📋 รายการใบสั่งขาย
@@ -139,13 +135,28 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              '$orderNo',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
+                            // ✅ SO กับวันที่ในบรรทัดเดียวกัน
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '$orderNo',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                Text(
+                                  _formatDate(sendDate),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: _mapColor(color),
+                                  ),
+                                ),
+                              ],
                             ),
+
                             const SizedBox(height: 4),
                             Text(
                               'ชื่อลูกค้า : $customer',
@@ -155,23 +166,7 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                               'จำนวนสินค้า : $itemCount',
                               style: const TextStyle(fontSize: 13),
                             ),
-                            const SizedBox(height: 6),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'วันที่ต้องจัดส่ง',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                                Text(
-                                  sendDate,
-                                  style: const TextStyle(fontSize: 13),
-                                ),
-                              ],
-                            ),
+
                             const SizedBox(height: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -220,27 +215,37 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
     );
   }
 
-  // ✅ ใช้สีตรงกับชื่อภาษาไทย (ภาพตัวอย่าง)
+  // ✅ แปลง yyyy-MM-dd → dd-MM-yyyy
+  String _formatDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    } catch (_) {
+      return dateStr;
+    }
+  }
+
+  // ✅ แปลง color string → สีจริง
   Color _mapColor(String color) {
     switch (color) {
       case 'red':
-        return const Color(0xFFFF3D3D); // แดง
+        return const Color(0xFFFE0000);
       case 'yellow':
-        return const Color(0xFFFFC107); // เหลือง
+        return const Color(0xFFDAA521);
       case 'pink':
-        return const Color(0xFFFF3DF5); // ชมพู
+        return const Color(0xFFFF00FE);
       case 'blue':
-        return const Color(0xFF0051FF); // น้ำเงิน
+        return const Color(0xFF0100F7);
       case 'purple':
-        return const Color(0xFF9900CC); // ม่วง
+        return const Color(0xFF81007F);
       case 'lightsky':
-        return const Color(0xFF90CAF9); // ฟ้า
+        return const Color(0xFF87CEEA);
       case 'brown':
-        return const Color(0xFF8D6E63); // น้ำตาล
+        return const Color(0xFFB3440B);
       case 'lightgreen':
-        return const Color(0xFFB2FF59); // เขียวอ่อน
+        return const Color(0xFF90EE90);
       case 'green':
-        return const Color(0xFF4CAF50); // เขียว
+        return const Color(0xFF008001);
       default:
         return Colors.grey;
     }

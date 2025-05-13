@@ -52,8 +52,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
 
       // ✅ ส่ง selectedColor ไปให้ SaleOrdersScreen ใช้งานจริง
-      body: SaleOrdersScreen(key: ValueKey(selectedColor),
-          colorFilter: selectedColor),
+      body: SaleOrdersScreen(
+        key: ValueKey(selectedColor),
+        colorFilter: selectedColor,
+      ),
     );
   }
 
@@ -180,23 +182,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Color _mapColor(String color) {
     switch (color) {
       case 'red':
-        return const Color(0xFFFF3D3D);
+        return const Color(0xFFFE0000);
       case 'yellow':
-        return const Color(0xFFFFC107);
+        return const Color(0xFFDAA521);
       case 'pink':
-        return const Color(0xFFFF3DF5);
+        return const Color(0xFFFF00FE);
       case 'blue':
-        return const Color(0xFF0051FF);
+        return const Color(0xFF0100F7);
       case 'purple':
-        return const Color(0xFF9900CC);
+        return const Color(0xFF81007F);
       case 'lightsky':
-        return const Color(0xFF90CAF9);
+        return const Color(0xFF87CEEA);
       case 'brown':
-        return const Color(0xFF8D6E63);
+        return const Color(0xFFB3440B);
       case 'lightgreen':
-        return const Color(0xFFB2FF59);
+        return const Color(0xFF90EE90);
       case 'green':
-        return const Color(0xFF4CAF50);
+        return const Color(0xFF008001);
       default:
         return Colors.grey;
     }
