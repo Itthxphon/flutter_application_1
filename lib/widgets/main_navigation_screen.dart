@@ -16,7 +16,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   final List<Widget> _screens = const [SaleOrdersScreen(), ScanHistoryScreen()];
 
-  final List<String> _titles = ['คำสั่งขาย', 'ประวัติการสแกน'];
+  final List<String> _titles = ['เช็ค Serial Number'];
 
   @override
   void initState() {
@@ -62,7 +62,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.local_shipping),
-              title: const Text('คำสั่งขาย'),
+              title: const Text('เช็ค Serial Number'),
               onTap: () => _onMenuSelected(0),
             ),
             ListTile(
