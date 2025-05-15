@@ -131,7 +131,6 @@ class _PickingListScreenState extends State<PickingListScreen> {
           ),
         ),
       ),
-
       body: Column(
         children: [
           Padding(
@@ -148,188 +147,195 @@ class _PickingListScreenState extends State<PickingListScreen> {
             ),
           ),
           Expanded(
-            child:
-                filteredItems.isEmpty
-                    ? const Center(child: Text('ไม่พบข้อมูลในใบสั่ง'))
-                    : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      itemCount: filteredItems.length,
-                      itemBuilder: (context, index) {
-                        final item = filteredItems[index];
-                        final productId = item['F_ProductId'] ?? '-';
-                        final description = item['F_Desciption'] ?? '-';
-                        final qty = item['F_Qty'] ?? 0;
-                        final scanned = item['scannedCount'] ?? 0;
-                        final remaining =
-                            (qty is int
-                                ? qty
-                                : int.tryParse(qty.toString()) ?? 0) -
-                            scanned;
-                        final isSelected = _isSelected(
-                          productId,
-                          item['F_Index'].toString(),
-                        );
-                        final isComplete = remaining <= 0;
-                        final imagePath = item['imagePath'] ?? '';
+            child: RefreshIndicator(
+              onRefresh: _loadItems,
+              child:
+                  filteredItems.isEmpty
+                      ? const Center(child: Text('ไม่พบข้อมูลในใบสั่ง'))
+                      : ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        itemCount: filteredItems.length,
+                        itemBuilder: (context, index) {
+                          final item = filteredItems[index];
+                          final productId = item['F_ProductId'] ?? '-';
+                          final description = item['F_Desciption'] ?? '-';
+                          final qty = item['F_Qty'] ?? 0;
+                          final scanned = item['scannedCount'] ?? 0;
+                          final remaining =
+                              (qty is int
+                                  ? qty
+                                  : int.tryParse(qty.toString()) ?? 0) -
+                              scanned;
+                          final isSelected = _isSelected(
+                            productId,
+                            item['F_Index'].toString(),
+                          );
+                          final isComplete = remaining <= 0;
+                          final imagePath = item['imagePath'] ?? '';
 
-                        return GestureDetector(
-                          onTap: () => _navigateToScanScreen(item),
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 6),
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: const [
-                                BoxShadow(color: Colors.black12, blurRadius: 2),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(6),
-                                      child: Image.network(
-                                        imagePath,
-                                        height: 90,
-                                        width: 90,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (
-                                          context,
-                                          error,
-                                          stackTrace,
-                                        ) {
-                                          return Image.asset(
-                                            'assets/images/no_image.png',
-                                            height: 70,
-                                            width: 70,
-                                            fit: BoxFit.cover,
-                                          );
-                                        },
+                          return GestureDetector(
+                            onTap: () => _navigateToScanScreen(item),
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 6),
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 2,
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: Image.network(
+                                          imagePath,
+                                          height: 90,
+                                          width: 90,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (
+                                            context,
+                                            error,
+                                            stackTrace,
+                                          ) {
+                                            return Image.asset(
+                                              'assets/images/no_image.png',
+                                              height: 70,
+                                              width: 70,
+                                              fit: BoxFit.cover,
+                                            );
+                                          },
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              '$productId - $description',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              'สถานที่ : ${item['F_Location'] ?? "-"}',
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: _buildInfoBox(
+                                                    'จำนวนเบิก',
+                                                    qty.toString(),
+                                                    const Color(0xFFFFA500),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Expanded(
+                                                  child: _buildInfoBox(
+                                                    'ยิง SN แล้ว',
+                                                    scanned.toString(),
+                                                    const Color(0xFF3CB043),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Expanded(
+                                                  child: _buildInfoBox(
+                                                    'ยังไม่ได้ยิง',
+                                                    remaining.toString(),
+                                                    const Color(0xFFFF0000),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
                                         children: [
+                                          const Text(
+                                            'สถานะ : ',
+                                            style: TextStyle(fontSize: 11),
+                                          ),
                                           Text(
-                                            '$productId - $description',
-                                            style: const TextStyle(
+                                            isComplete
+                                                ? '✅ ตรวจครบแล้ว'
+                                                : '⌛ รอสแกน',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color:
+                                                  isComplete
+                                                      ? Colors.green
+                                                      : Colors.orange,
                                               fontWeight: FontWeight.bold,
-                                              fontSize: 11,
                                             ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            'สถานที่ : ${item['F_Location'] ?? "-"}',
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: _buildInfoBox(
-                                                  'จำนวนเบิก',
-                                                  qty.toString(),
-                                                  const Color(0xFFFFA500),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Expanded(
-                                                child: _buildInfoBox(
-                                                  'ยิง SN แล้ว',
-                                                  scanned.toString(),
-                                                  const Color(0xFF3CB043),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Expanded(
-                                                child: _buildInfoBox(
-                                                  'ยังไม่ได้ยิง',
-                                                  remaining.toString(),
-                                                  const Color(0xFFFF0000),
-                                                ),
-                                              ),
-                                            ],
                                           ),
                                         ],
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          'สถานะ : ',
-                                          style: TextStyle(fontSize: 11),
+                                      TextButton(
+                                        onPressed:
+                                            () => _navigateToScanScreen(item),
+                                        style: TextButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          backgroundColor:
+                                              isComplete
+                                                  ? Colors.white
+                                                  : (isSelected
+                                                      ? Colors.green[100]
+                                                      : Colors.white),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            side: const BorderSide(
+                                              color: Colors.black12,
+                                            ),
+                                          ),
                                         ),
-                                        Text(
+                                        child: Text(
                                           isComplete
-                                              ? '✅ ตรวจครบแล้ว'
-                                              : '⌛ รอสแกน',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color:
-                                                isComplete
-                                                    ? Colors.green
-                                                    : Colors.orange,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    TextButton(
-                                      onPressed:
-                                          () => _navigateToScanScreen(item),
-                                      style: TextButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 4,
-                                        ),
-                                        backgroundColor:
-                                            isComplete
-                                                ? Colors.white
-                                                : (isSelected
-                                                    ? Colors.green[100]
-                                                    : Colors.white),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                          side: const BorderSide(
-                                            color: Colors.black12,
-                                          ),
+                                              ? '✅ ครบแล้ว'
+                                              : (isSelected
+                                                  ? '✅ กำลังสแกน'
+                                                  : 'เลือกสแกน'),
+                                          style: const TextStyle(fontSize: 10),
                                         ),
                                       ),
-                                      child: Text(
-                                        isComplete
-                                            ? '✅ ครบแล้ว'
-                                            : (isSelected
-                                                ? '✅ กำลังสแกน'
-                                                : 'เลือกสแกน'),
-                                        style: const TextStyle(fontSize: 10),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                          );
+                        },
+                      ),
+            ),
           ),
         ],
       ),

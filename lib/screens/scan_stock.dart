@@ -26,7 +26,8 @@ class ScanStockScreen extends StatefulWidget {
   State<ScanStockScreen> createState() => _ScanStockScreenState();
 }
 
-class _ScanStockScreenState extends State<ScanStockScreen> {
+class _ScanStockScreenState extends State<ScanStockScreen>
+    with WidgetsBindingObserver {
   final TextEditingController _snController = TextEditingController();
   List<String> scannedSNs = [];
   bool isLoading = false;
@@ -35,7 +36,23 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadScannedSNs();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _snController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      FocusManager.instance.primaryFocus?.unfocus();
+    }
   }
 
   Future<void> _loadScannedSNs() async {
@@ -178,20 +195,24 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
                 backgroundColor: const Color(0xFF1A1A2E),
                 foregroundColor: Colors.white,
               ),
-              body: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildInfoCard(scanned, remaining, isComplete),
-                    const SizedBox(height: 10),
-                    if (!isComplete) _buildSNInput(),
-                    const SizedBox(height: 10),
-                    Expanded(child: _buildScannedList()),
-                  ],
+              body: RefreshIndicator(
+                onRefresh: _loadScannedSNs,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoCard(scanned, remaining, isComplete),
+                      const SizedBox(height: 10),
+                      if (!isComplete) _buildSNInput(),
+                      const SizedBox(height: 10),
+                      _buildScannedList(),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -358,69 +379,65 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
-          Expanded(
-            child:
-                scannedSNs.isEmpty
-                    ? const Center(child: Text('ไม่มีรายการที่สแกน'))
-                    : Scrollbar(
-                      thumbVisibility: true,
-                      child: ListView.builder(
-                        itemCount: scannedSNs.length,
-                        itemBuilder: (context, index) {
-                          final sn = scannedSNs[index];
-                          return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 3),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade50,
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    sn,
-                                    style: const TextStyle(
-                                      fontSize: 12.5,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Container(
-                                  height: 24,
-                                  width: 24,
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.shade50,
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(
-                                      color: Colors.red.shade200,
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: IconButton(
-                                    icon: const Icon(
-                                      Icons.delete,
-                                      size: 14,
-                                      color: Colors.red,
-                                    ),
-                                    onPressed: () => _confirmDeleteSN(sn),
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                    splashRadius: 18,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+          scannedSNs.isEmpty
+              ? const Center(child: Text('ไม่มีรายการที่สแกน'))
+              : ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: scannedSNs.length,
+                itemBuilder: (context, index) {
+                  final sn = scannedSNs[index];
+                  return Container(
+                    margin: const EdgeInsets.symmetric(vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
                     ),
-          ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            sn,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          height: 24,
+                          width: 24,
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: Colors.red.shade200,
+                              width: 1,
+                            ),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              size: 14,
+                              color: Colors.red,
+                            ),
+                            onPressed: () => _confirmDeleteSN(sn),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            splashRadius: 18,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
         ],
       ),
     );

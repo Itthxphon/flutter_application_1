@@ -4,7 +4,7 @@ import 'picking_list.dart';
 
 class SaleOrdersScreen extends StatefulWidget {
   final String? colorFilter;
-  final void Function(int)? onPendingCountChanged; // ✅ เพิ่มตรงนี้
+  final void Function(int)? onPendingCountChanged;
 
   const SaleOrdersScreen({
     super.key,
@@ -81,7 +81,6 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
     return Scaffold(
       body: Column(
         children: [
-          // 🔍 ช่องค้นหา
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 2),
             child: TextField(
@@ -115,113 +114,122 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                   return const Center(child: Text('ไม่พบข้อมูลคำสั่งขาย'));
                 }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: orders.length,
-                  itemBuilder: (context, index) {
-                    final order = orders[index];
-                    final orderNo = order['F_SaleOrderNo'] ?? '-';
-                    final customer = order['F_CustomerName'] ?? '-';
-                    final sendDate =
-                        (order['F_SendDate'] ?? '').toString().split('T').first;
-                    final checkStatus = order['F_CheckSNStatus'];
-                    final isChecked = checkStatus == 1 || checkStatus == '1';
-                    final color = order['color'] ?? '';
-                    final itemCount = order['itemCount'] ?? 0;
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    _fetchOrders();
+                  },
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: orders.length,
+                    itemBuilder: (context, index) {
+                      final order = orders[index];
+                      final orderNo = order['F_SaleOrderNo'] ?? '-';
+                      final customer = order['F_CustomerName'] ?? '-';
+                      final sendDate =
+                          (order['F_SendDate'] ?? '')
+                              .toString()
+                              .split('T')
+                              .first;
+                      final checkStatus = order['F_CheckSNStatus'];
+                      final isChecked = checkStatus == 1 || checkStatus == '1';
+                      final color = order['color'] ?? '';
+                      final itemCount = order['itemCount'] ?? 0;
 
-                    return GestureDetector(
-                      onTap: () => _navigateToPickingList(orderNo),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 4,
-                              offset: Offset(0, 2),
+                      return GestureDetector(
+                        onTap: () => _navigateToPickingList(orderNo),
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 4,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                            border: Border(
+                              left: BorderSide(
+                                width: 5,
+                                color: _mapColor(color),
+                              ),
                             ),
-                          ],
-                          border: Border(
-                            left: BorderSide(width: 5, color: _mapColor(color)),
                           ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // ✅ SO กับวันที่ในบรรทัดเดียวกัน
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '$orderNo',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '$orderNo',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  _formatDate(sendDate),
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                    color: _mapColor(color),
+                                  Text(
+                                    _formatDate(sendDate),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: _mapColor(color),
+                                    ),
                                   ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'ชื่อลูกค้า : $customer',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                              Text(
+                                'จำนวนสินค้า : $itemCount',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
                                 ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 4),
-                            Text(
-                              'ชื่อลูกค้า : $customer',
-                              style: const TextStyle(fontSize: 13),
-                            ),
-                            Text(
-                              'จำนวนสินค้า : $itemCount',
-                              style: const TextStyle(fontSize: 13),
-                            ),
-
-                            const SizedBox(height: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color:
-                                    isChecked
-                                        ? Colors.green.withOpacity(0.1)
-                                        : const Color(
-                                          0xFFFFC1C1,
-                                        ).withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Text(
-                                isChecked
-                                    ? '✅ ตรวจสอบ SN ครบแล้ว'
-                                    : '⏳ รอตรวจสอบ SN',
-                                style: TextStyle(
-                                  fontSize: 12,
+                                decoration: BoxDecoration(
                                   color:
                                       isChecked
-                                          ? Colors.green
-                                          : const Color.fromARGB(
-                                            255,
-                                            243,
-                                            78,
-                                            66,
-                                          ),
-                                  fontWeight: FontWeight.bold,
+                                          ? Colors.green.withOpacity(0.1)
+                                          : const Color(
+                                            0xFFFFC1C1,
+                                          ).withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Text(
+                                  isChecked
+                                      ? '✅ ตรวจสอบ SN ครบแล้ว'
+                                      : '⏳ รอตรวจสอบ SN',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color:
+                                        isChecked
+                                            ? Colors.green
+                                            : const Color.fromARGB(
+                                              255,
+                                              243,
+                                              78,
+                                              66,
+                                            ),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 );
               },
             ),
@@ -231,7 +239,6 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
     );
   }
 
-  // ✅ แปลง yyyy-MM-dd → dd-MM-yyyy
   String _formatDate(String dateStr) {
     try {
       final date = DateTime.parse(dateStr);
@@ -241,7 +248,6 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
     }
   }
 
-  // ✅ แปลง color string → สีจริง
   Color _mapColor(String color) {
     switch (color) {
       case 'red':
