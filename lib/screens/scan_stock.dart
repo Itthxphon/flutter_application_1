@@ -285,12 +285,19 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
 
   Widget _statusTag(String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(text, style: TextStyle(color: color, fontSize: 13)),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
     );
   }
 

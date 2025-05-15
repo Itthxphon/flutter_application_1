@@ -84,13 +84,14 @@ class _PickingListScreenState extends State<PickingListScreen> {
 
   Widget _buildInfoBox(String title, String value, Color numberColor) {
     return Container(
-      padding: const EdgeInsets.all(6),
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9F9F9), // ✅ สีพื้น: เทาอ่อนมินิมอล
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: Colors.grey.shade300),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             title,
@@ -102,7 +103,7 @@ class _PickingListScreenState extends State<PickingListScreen> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: numberColor, // ✅ สีตัวเลขตามสถานะ
+              color: numberColor,
             ),
           ),
         ],
@@ -113,17 +114,28 @@ class _PickingListScreenState extends State<PickingListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color.fromARGB(255, 255, 254, 254),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
-        title: Text('สินค้าในใบสั่ง ${widget.orderNo}'),
         centerTitle: true,
         foregroundColor: Colors.white,
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            'เลขที่ใบสั่ง ${widget.orderNo}',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
       ),
+
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'ค้นหารหัสสินค้า หรือชื่อสินค้า',
@@ -140,7 +152,7 @@ class _PickingListScreenState extends State<PickingListScreen> {
                 filteredItems.isEmpty
                     ? const Center(child: Text('ไม่พบข้อมูลในใบสั่ง'))
                     : ListView.builder(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                       itemCount: filteredItems.length,
                       itemBuilder: (context, index) {
                         final item = filteredItems[index];
@@ -163,13 +175,13 @@ class _PickingListScreenState extends State<PickingListScreen> {
                         return GestureDetector(
                           onTap: () => _navigateToScanScreen(item),
                           child: Container(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            padding: const EdgeInsets.all(10), // ปรับลด padding
+                            margin: const EdgeInsets.only(bottom: 6),
+                            padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(8),
                               boxShadow: const [
-                                BoxShadow(color: Colors.black12, blurRadius: 3),
+                                BoxShadow(color: Colors.black12, blurRadius: 2),
                               ],
                             ),
                             child: Column(
@@ -178,35 +190,28 @@ class _PickingListScreenState extends State<PickingListScreen> {
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Stack(
-                                      alignment: Alignment.bottomRight,
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          child: Image.network(
-                                            imagePath,
-                                            height: 100,
-                                            width: 100,
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(6),
+                                      child: Image.network(
+                                        imagePath,
+                                        height: 90,
+                                        width: 90,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (
+                                          context,
+                                          error,
+                                          stackTrace,
+                                        ) {
+                                          return Image.asset(
+                                            'assets/images/no_image.png',
+                                            height: 70,
+                                            width: 70,
                                             fit: BoxFit.cover,
-                                            errorBuilder: (
-                                              context,
-                                              error,
-                                              stackTrace,
-                                            ) {
-                                              return Image.asset(
-                                                'assets/images/no_image.png',
-                                                height: 100,
-                                                width: 100,
-                                                fit: BoxFit.cover,
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ],
+                                          );
+                                        },
+                                      ),
                                     ),
-                                    const SizedBox(width: 10),
+                                    const SizedBox(width: 6),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
@@ -216,53 +221,50 @@ class _PickingListScreenState extends State<PickingListScreen> {
                                             '$productId - $description',
                                             style: const TextStyle(
                                               fontWeight: FontWeight.bold,
-                                              fontSize: 13,
+                                              fontSize: 11,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            'สถานที่ : ${item['F_Location'] ?? "-"}',
+                                            style: const TextStyle(
+                                              fontSize: 11,
                                             ),
                                           ),
                                           const SizedBox(height: 4),
-                                          Text(
-                                            '📍 สถานที่: ${item['F_Location'] ?? "-"}',
-                                            style: const TextStyle(
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Align(
-                                            alignment: Alignment.topRight,
-                                            child: Row(
-                                              children: [
-                                                Expanded(
-                                                  child: _buildInfoBox(
-                                                    'จำนวนเบิก',
-                                                    qty.toString(),
-                                                    Colors.yellow.shade100,
-                                                  ),
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: _buildInfoBox(
+                                                  'จำนวนเบิก',
+                                                  qty.toString(),
+                                                  const Color(0xFFFFA500),
                                                 ),
-                                                const SizedBox(width: 8),
-                                                Expanded(
-                                                  child: _buildInfoBox(
-                                                    'ยิง SN แล้ว',
-                                                    scanned.toString(),
-                                                    Colors.green.shade100,
-                                                  ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Expanded(
+                                                child: _buildInfoBox(
+                                                  'ยิง SN แล้ว',
+                                                  scanned.toString(),
+                                                  const Color(0xFF3CB043),
                                                 ),
-                                                const SizedBox(width: 8),
-                                                Expanded(
-                                                  child: _buildInfoBox(
-                                                    'ยังไม่ได้ยิง',
-                                                    remaining.toString(),
-                                                    Colors.red.shade100,
-                                                  ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Expanded(
+                                                child: _buildInfoBox(
+                                                  'ยังไม่ได้ยิง',
+                                                  remaining.toString(),
+                                                  const Color(0xFFFF0000),
                                                 ),
-                                              ],
-                                            ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 4),
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
@@ -270,15 +272,15 @@ class _PickingListScreenState extends State<PickingListScreen> {
                                     Row(
                                       children: [
                                         const Text(
-                                          'สถานะ: ',
-                                          style: TextStyle(fontSize: 13),
+                                          'สถานะ : ',
+                                          style: TextStyle(fontSize: 11),
                                         ),
                                         Text(
                                           isComplete
                                               ? '✅ ตรวจครบแล้ว'
                                               : '⌛ รอสแกน',
                                           style: TextStyle(
-                                            fontSize: 13,
+                                            fontSize: 11,
                                             color:
                                                 isComplete
                                                     ? Colors.green
@@ -293,18 +295,18 @@ class _PickingListScreenState extends State<PickingListScreen> {
                                           () => _navigateToScanScreen(item),
                                       style: TextButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 6,
+                                          horizontal: 10,
+                                          vertical: 4,
                                         ),
                                         backgroundColor:
                                             isComplete
-                                                ? Colors.grey[200]
+                                                ? Colors.white
                                                 : (isSelected
                                                     ? Colors.green[100]
                                                     : Colors.white),
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
-                                            8,
+                                            6,
                                           ),
                                           side: const BorderSide(
                                             color: Colors.black12,
@@ -317,7 +319,7 @@ class _PickingListScreenState extends State<PickingListScreen> {
                                             : (isSelected
                                                 ? '✅ กำลังสแกน'
                                                 : 'เลือกสแกน'),
-                                        style: const TextStyle(fontSize: 12),
+                                        style: const TextStyle(fontSize: 10),
                                       ),
                                     ),
                                   ],
