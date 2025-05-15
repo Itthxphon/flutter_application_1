@@ -33,6 +33,14 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
     _orders.then((data) {
       final pending = data.where((o) => o['F_CheckSNStatus'] != 1).length;
 
+      data.sort((a, b) {
+        final dateA =
+            DateTime.tryParse(a['F_SendDate'] ?? '') ?? DateTime(2100);
+        final dateB =
+            DateTime.tryParse(b['F_SendDate'] ?? '') ?? DateTime(2100);
+        return dateA.compareTo(dateB);
+      });
+
       setState(() {
         allOrders = data;
         _filterOrders(searchText);
@@ -75,7 +83,7 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
         children: [
           // 🔍 ช่องค้นหา
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 2),
             child: TextField(
               onChanged: _filterOrders,
               decoration: InputDecoration(
@@ -87,9 +95,8 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 2),
 
-          // 📋 รายการใบสั่งขาย
           Expanded(
             child: FutureBuilder<List<dynamic>>(
               future: _orders,

@@ -1,3 +1,4 @@
+// ส่วน import คงเดิม
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -178,14 +179,17 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
                 foregroundColor: Colors.white,
               ),
               body: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildInfoCard(scanned, remaining, isComplete),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     if (!isComplete) _buildSNInput(),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     Expanded(child: _buildScannedList()),
                   ],
                 ),
@@ -313,8 +317,8 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
               fillColor: Colors.white,
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
+                horizontal: 10,
+                vertical: 8,
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -329,9 +333,9 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
           onPressed: isLoading ? null : _submitSN,
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF1A1A2E),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           ),
-          child: const Icon(Icons.qr_code_scanner, size: 20),
+          child: const Icon(Icons.qr_code_scanner, size: 18),
         ),
       ],
     );
@@ -340,7 +344,7 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
   Widget _buildScannedList() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -353,7 +357,7 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
             'SN ที่สแกนแล้ว',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Expanded(
             child:
                 scannedSNs.isEmpty
@@ -365,15 +369,15 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
                         itemBuilder: (context, index) {
                           final sn = scannedSNs[index];
                           return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 4),
+                            margin: const EdgeInsets.symmetric(vertical: 3),
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
+                              horizontal: 8,
+                              vertical: 6,
                             ),
                             decoration: BoxDecoration(
                               color: Colors.grey.shade50,
                               border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(6),
                             ),
                             child: Row(
                               children: [
@@ -381,18 +385,18 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
                                   child: Text(
                                     sn,
                                     style: const TextStyle(
-                                      fontSize: 13,
+                                      fontSize: 12.5,
                                       color: Colors.black87,
                                     ),
                                   ),
                                 ),
                                 const SizedBox(width: 6),
                                 Container(
-                                  height: 32,
-                                  width: 32,
+                                  height: 24,
+                                  width: 24,
                                   decoration: BoxDecoration(
                                     color: Colors.red.shade50,
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
                                       color: Colors.red.shade200,
                                       width: 1,
@@ -401,13 +405,13 @@ class _ScanStockScreenState extends State<ScanStockScreen> {
                                   child: IconButton(
                                     icon: const Icon(
                                       Icons.delete,
-                                      size: 18,
+                                      size: 14,
                                       color: Colors.red,
                                     ),
                                     onPressed: () => _confirmDeleteSN(sn),
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(),
-                                    splashRadius: 20,
+                                    splashRadius: 18,
                                   ),
                                 ),
                               ],
