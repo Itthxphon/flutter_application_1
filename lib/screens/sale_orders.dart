@@ -4,8 +4,13 @@ import 'picking_list.dart';
 
 class SaleOrdersScreen extends StatefulWidget {
   final String? colorFilter;
+  final void Function(int)? onPendingCountChanged; // ✅ เพิ่มตรงนี้
 
-  const SaleOrdersScreen({super.key, this.colorFilter});
+  const SaleOrdersScreen({
+    super.key,
+    this.colorFilter,
+    this.onPendingCountChanged,
+  });
 
   @override
   State<SaleOrdersScreen> createState() => _SaleOrdersScreenState();
@@ -26,10 +31,14 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
   void _fetchOrders() {
     _orders = ApiService.getOrders(color: widget.colorFilter);
     _orders.then((data) {
+      final pending = data.where((o) => o['F_CheckSNStatus'] != 1).length;
+
       setState(() {
         allOrders = data;
         _filterOrders(searchText);
       });
+
+      widget.onPendingCountChanged?.call(pending);
     });
   }
 

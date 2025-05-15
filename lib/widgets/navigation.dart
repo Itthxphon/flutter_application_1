@@ -9,57 +9,9 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  String? selectedColor; // ✅ เก็บค่าสีที่เลือก
+  String? selectedColor;
+  int pendingCount = 0;
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xFF1A1A2E),
-        foregroundColor: Colors.white,
-        title: Row(
-          children: [
-            // ✅ ปุ่มกรอง (กดแล้วแสดง PopupMenu ด้านล่าง)
-            IconButton(
-              icon: const Icon(Icons.tune),
-              tooltip: 'กรองตามสีวันจัดส่ง',
-              onPressed: () {
-                _showColorFilterMenu(context); // ✅ เปิดเมนูกรอง
-              },
-            ),
-
-            // ✅ ชื่ออยู่ตรงกลาง
-            const Expanded(
-              child: Center(
-                child: Text(
-                  'เช็ค Serial Number',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-
-            // ✅ ปุ่มแจ้งเตือน (ไว้เพิ่มฟีเจอร์ในอนาคต)
-            IconButton(
-              icon: const Icon(Icons.notifications),
-              tooltip: 'งานวันนี้ที่ยังไม่ทำ',
-              onPressed: () {
-                // Future: แสดงรายการงานวันนี้
-              },
-            ),
-          ],
-        ),
-      ),
-
-      // ✅ ส่ง selectedColor ไปให้ SaleOrdersScreen ใช้งานจริง
-      body: SaleOrdersScreen(
-        key: ValueKey(selectedColor),
-        colorFilter: selectedColor,
-      ),
-    );
-  }
-
-  // ✅ เมนู Popup สำหรับเลือกสี
   void _showColorFilterMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -106,7 +58,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
-  // ✅ ปุ่มกรองแต่ละสี (ขนาดเท่ากัน + วงกลมสี)
   Widget _buildColorBox(BuildContext context, String? colorCode, String label) {
     final isSelected = selectedColor == colorCode;
 
@@ -114,7 +65,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       onTap: () {
         Navigator.pop(context);
         setState(() {
-          selectedColor = colorCode; // ✅ เปลี่ยนค่า filter
+          selectedColor = colorCode;
         });
       },
       child: Container(
@@ -152,7 +103,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
-  // ✅ แปลงรหัสสีเป็นชื่อไทย
   String _colorLabel(String color) {
     switch (color) {
       case 'red':
@@ -178,7 +128,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     }
   }
 
-  // ✅ แปลงรหัสสีเป็น Color จริง (จากภาพตัวอย่างของคุณ)
   Color _mapColor(String color) {
     switch (color) {
       case 'red':
@@ -202,5 +151,73 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       default:
         return Colors.grey;
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: const Color(0xFF1A1A2E),
+        foregroundColor: Colors.white,
+        title: Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.tune),
+              tooltip: 'กรองตามสีวันจัดส่ง',
+              onPressed: () => _showColorFilterMenu(context),
+            ),
+            const Expanded(
+              child: Center(
+                child: Text(
+                  'เช็ค Serial Number',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            Stack(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.notifications),
+                  tooltip: 'งานวันนี้ที่ยังไม่ทำ',
+                  onPressed: () {
+                    // คุณสามารถเพิ่มการแสดง popup รายละเอียดได้ที่นี่
+                  },
+                ),
+                if (pendingCount > 0)
+                  Positioned(
+                    top: 2,
+                    right: 2,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        '$pendingCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 7,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      body: SaleOrdersScreen(
+        key: ValueKey(selectedColor),
+        colorFilter: selectedColor,
+        onPendingCountChanged: (count) {
+          setState(() {
+            pendingCount = count;
+          });
+        },
+      ),
+    );
   }
 }
