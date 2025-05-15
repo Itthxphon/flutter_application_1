@@ -12,6 +12,60 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   String? selectedColor;
   int pendingCount = 0;
 
+  final GlobalKey _notifyIconKey = GlobalKey();
+
+  void _showTooltipBelowIcon(GlobalKey key, String message) {
+    final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+
+    final overlay = Overlay.of(context);
+    final screenSize = MediaQuery.of(context).size;
+    final position = renderBox.localToGlobal(Offset.zero);
+
+    // คำนวณขนาด tooltip โดยประมาณ
+    const tooltipWidth = 160.0;
+    const tooltipHeight = 36.0;
+
+    double left = position.dx;
+
+    // ถ้า tooltip เลยขอบขวา ให้เลื่อนซ้าย
+    if (left + tooltipWidth > screenSize.width - 8) {
+      left = screenSize.width - tooltipWidth - 8;
+    }
+
+    final overlayEntry = OverlayEntry(
+      builder:
+          (context) => Positioned(
+            top: position.dy + renderBox.size.height + 4,
+            left: left,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                width: tooltipWidth,
+                height: tooltipHeight,
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black87,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  message,
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ),
+    );
+
+    overlay.insert(overlayEntry);
+    Future.delayed(const Duration(seconds: 2), () => overlayEntry.remove());
+  }
+
   void _showColorFilterMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -178,10 +232,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             Stack(
               children: [
                 IconButton(
+                  key: _notifyIconKey,
                   icon: const Icon(Icons.notifications),
                   tooltip: 'งานวันนี้ที่ยังไม่ทำ',
                   onPressed: () {
-                    // คุณสามารถเพิ่มการแสดง popup รายละเอียดได้ที่นี่
+                    _showTooltipBelowIcon(
+                      _notifyIconKey,
+                      'งานวันนี้ที่ยังไม่ได้ทำ',
+                    );
                   },
                 ),
                 if (pendingCount > 0)
@@ -189,16 +247,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     top: 2,
                     right: 2,
                     child: Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: const BoxDecoration(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
                         color: Colors.red,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         '$pendingCount',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 7,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
