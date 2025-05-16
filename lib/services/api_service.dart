@@ -85,4 +85,73 @@ class ApiService {
 
     return jsonDecode(response.body);
   }
+
+  static Future<Map<String, dynamic>> changeLocation({
+    required String productId,
+    required String newLocation,
+    required String employeeId,
+  }) async {
+    final uri = Uri.parse('$baseUrl/change-location');
+
+    final response = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'productId': productId,
+        'newLocation': newLocation,
+        'employeeId': employeeId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('ไม่สามารถเปลี่ยน Location ได้: ${response.body}');
+    }
+  }
+
+
+  static Future<Map<String, dynamic>> login({
+    required String userID,
+    required String password,
+  }) async {
+    final uri = Uri.parse('$baseUrl/login');
+
+    final response = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'userID': userID,
+        'password': password,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body); // มี key: success, user
+    } else if (response.statusCode == 401) {
+      throw Exception('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+    } else {
+      throw Exception('เกิดข้อผิดพลาดในการเชื่อมต่อ: ${response.body}');
+    }
+  }
+
+  static Future<List<dynamic>> scanProductId(String productId) async {
+    final uri = Uri.parse('$baseUrl/scan-product-id');
+
+    final response = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'productId': productId}),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body); // return รายการสินค้า (recordset)
+    } else if (response.statusCode == 404) {
+      throw Exception('ไม่พบข้อมูลสินค้า');
+    } else {
+      throw Exception('เกิดข้อผิดพลาด: ${response.body}');
+    }
+  }
+
+
 }
