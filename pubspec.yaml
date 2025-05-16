@@ -37,10 +37,13 @@ dependencies:
   http: ^0.13.6
   flutter_barcode_listener: ^0.1.4
   visibility_detector: ^0.4.0+2
+  shared_preferences: ^2.2.2
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

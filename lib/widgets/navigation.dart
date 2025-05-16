@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../screens/ScanProductIdScreen.dart';
+import '../screens/login_screen.dart';
 import '../screens/sale_orders.dart';
 
 class MainNavigationScreen extends StatefulWidget {
@@ -22,44 +25,37 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final screenSize = MediaQuery.of(context).size;
     final position = renderBox.localToGlobal(Offset.zero);
 
-    // คำนวณขนาด tooltip โดยประมาณ
     const tooltipWidth = 160.0;
     const tooltipHeight = 36.0;
 
     double left = position.dx;
-
-    // ถ้า tooltip เลยขอบขวา ให้เลื่อนซ้าย
     if (left + tooltipWidth > screenSize.width - 8) {
       left = screenSize.width - tooltipWidth - 8;
     }
 
     final overlayEntry = OverlayEntry(
-      builder:
-          (context) => Positioned(
-            top: position.dy + renderBox.size.height + 4,
-            left: left,
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                width: tooltipWidth,
-                height: tooltipHeight,
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  message,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
+      builder: (context) => Positioned(
+        top: position.dy + renderBox.size.height + 4,
+        left: left,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: tooltipWidth,
+            height: tooltipHeight,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.black87,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
+        ),
+      ),
     );
 
     overlay.insert(overlayEntry);
@@ -90,19 +86,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 children: [
                   _buildColorBox(context, null, 'ทั้งหมด'),
                   ...[
-                    'red',
-                    'yellow',
-                    'pink',
-                    'blue',
-                    'purple',
-                    'lightsky',
-                    'brown',
-                    'lightgreen',
-                    'green',
-                  ].map(
-                    (color) =>
-                        _buildColorBox(context, color, _colorLabel(color)),
-                  ),
+                    'red', 'yellow', 'pink', 'blue', 'purple',
+                    'lightsky', 'brown', 'lightgreen', 'green',
+                  ].map((color) => _buildColorBox(context, color, _colorLabel(color))),
                 ],
               ),
             ],
@@ -132,7 +118,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           color: isSelected ? Colors.blue.shade50 : Colors.white,
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             if (colorCode != null)
               Container(
@@ -159,51 +144,31 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   String _colorLabel(String color) {
     switch (color) {
-      case 'red':
-        return 'แดง';
-      case 'yellow':
-        return 'เหลือง';
-      case 'pink':
-        return 'ชมพู';
-      case 'blue':
-        return 'น้ำเงิน';
-      case 'purple':
-        return 'ม่วง';
-      case 'lightsky':
-        return 'ฟ้า';
-      case 'brown':
-        return 'น้ำตาล';
-      case 'lightgreen':
-        return 'เขียวอ่อน';
-      case 'green':
-        return 'เขียว';
-      default:
-        return color;
+      case 'red': return 'แดง';
+      case 'yellow': return 'เหลือง';
+      case 'pink': return 'ชมพู';
+      case 'blue': return 'น้ำเงิน';
+      case 'purple': return 'ม่วง';
+      case 'lightsky': return 'ฟ้า';
+      case 'brown': return 'น้ำตาล';
+      case 'lightgreen': return 'เขียวอ่อน';
+      case 'green': return 'เขียว';
+      default: return color;
     }
   }
 
   Color _mapColor(String color) {
     switch (color) {
-      case 'red':
-        return const Color(0xFFFE0000);
-      case 'yellow':
-        return const Color(0xFFDAA521);
-      case 'pink':
-        return const Color(0xFFFF00FE);
-      case 'blue':
-        return const Color(0xFF0100F7);
-      case 'purple':
-        return const Color(0xFF81007F);
-      case 'lightsky':
-        return const Color(0xFF87CEEA);
-      case 'brown':
-        return const Color(0xFFB3440B);
-      case 'lightgreen':
-        return const Color(0xFF90EE90);
-      case 'green':
-        return const Color(0xFF008001);
-      default:
-        return Colors.grey;
+      case 'red': return const Color(0xFFFE0000);
+      case 'yellow': return const Color(0xFFDAA521);
+      case 'pink': return const Color(0xFFFF00FE);
+      case 'blue': return const Color(0xFF0100F7);
+      case 'purple': return const Color(0xFF81007F);
+      case 'lightsky': return const Color(0xFF87CEEA);
+      case 'brown': return const Color(0xFFB3440B);
+      case 'lightgreen': return const Color(0xFF90EE90);
+      case 'green': return const Color(0xFF008001);
+      default: return Colors.grey;
     }
   }
 
@@ -247,10 +212,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     top: 2,
                     right: 2,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 4,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.red,
                         borderRadius: BorderRadius.circular(12),
@@ -266,6 +228,29 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     ),
                   ),
               ],
+            ),
+            IconButton(
+              icon: const Icon(Icons.qr_code_scanner),
+              tooltip: 'สแกน ProductID',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ScanProductIdScreen()),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'ออกจากระบบ',
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('userID');
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                      (route) => false,
+                );
+              },
             ),
           ],
         ),
