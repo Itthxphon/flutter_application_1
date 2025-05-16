@@ -320,7 +320,7 @@ class _PickingListScreenState extends State<PickingListScreen> {
                                         ),
                                         child: Text(
                                           isComplete
-                                              ? '✅ ครบแล้ว'
+                                              ? '✅ ครบแล้วครับ'
                                               : (isSelected
                                                   ? '✅ กำลังสแกน'
                                                   : 'เลือกสแกน'),
