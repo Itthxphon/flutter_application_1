@@ -1,4 +1,3 @@
-// ส่วน import คงเดิม
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +30,7 @@ class _ScanStockScreenState extends State<ScanStockScreen>
   final TextEditingController _snController = TextEditingController();
   List<String> scannedSNs = [];
   bool isLoading = false;
+  bool _isLoadingSNList = true;
   bool visible = true;
 
   @override
@@ -56,6 +56,8 @@ class _ScanStockScreenState extends State<ScanStockScreen>
   }
 
   Future<void> _loadScannedSNs() async {
+    setState(() => _isLoadingSNList = true);
+
     final allSNs = await ApiService.getAllScannedSNs();
     final filtered =
         allSNs
@@ -70,6 +72,7 @@ class _ScanStockScreenState extends State<ScanStockScreen>
 
     setState(() {
       scannedSNs = filtered.reversed.toList();
+      _isLoadingSNList = false;
     });
   }
 
@@ -379,7 +382,9 @@ class _ScanStockScreenState extends State<ScanStockScreen>
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
-          scannedSNs.isEmpty
+          _isLoadingSNList
+              ? const Center(child: CircularProgressIndicator())
+              : scannedSNs.isEmpty
               ? const Center(child: Text('ไม่มีรายการที่สแกน'))
               : ListView.builder(
                 shrinkWrap: true,
