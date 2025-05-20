@@ -21,10 +21,21 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
   List<dynamic> filteredOrders = [];
   String searchText = '';
   bool _isLoading = true;
+  int pendingCount = 0;
+  String? selectedColor;
+  @override
+  void didUpdateWidget(covariant SaleOrdersScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.colorFilter != widget.colorFilter) {
+      selectedColor = widget.colorFilter;
+      _fetchOrders(); // โหลดใหม่เมื่อ filter เปลี่ยน
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    selectedColor = widget.colorFilter;
     _fetchOrders();
   }
 
@@ -32,7 +43,7 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final data = await ApiService.getOrders(color: widget.colorFilter);
+      final data = await ApiService.getOrders(color: selectedColor);
       final pending = data.where((o) => o['F_CheckSNStatus'] != 1).length;
 
       data.sort((a, b) {
@@ -43,9 +54,15 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
         return dateA.compareTo(dateB);
       });
 
+      final filteredByColor =
+          selectedColor == null
+              ? data
+              : data.where((o) => o['color'] == selectedColor).toList();
+
       setState(() {
-        allOrders = data;
-        _filterOrders(searchText);
+        allOrders = filteredByColor;
+        pendingCount = pending;
+        _filterOrdersByColor();
         _isLoading = false;
       });
 
@@ -59,17 +76,32 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
   }
 
   void _filterOrders(String query) {
+    searchText = query;
+    _filterOrdersByColor();
+  }
+
+  void _filterOrdersByColor() {
+    final filter = selectedColor;
     setState(() {
-      searchText = query;
-      filteredOrders =
-          allOrders.where((order) {
-            final orderNo =
-                (order['F_SaleOrderNo'] ?? '').toString().toLowerCase();
-            final customer =
-                (order['F_CustomerName'] ?? '').toString().toLowerCase();
-            return orderNo.contains(query.toLowerCase()) ||
-                customer.contains(query.toLowerCase());
-          }).toList();
+      if (searchText.isEmpty) {
+        filteredOrders =
+            filter == null
+                ? allOrders
+                : allOrders.where((order) => order['color'] == filter).toList();
+      } else {
+        filteredOrders =
+            allOrders.where((order) {
+              final orderNo =
+                  (order['F_SaleOrderNo'] ?? '').toString().toLowerCase();
+              final customer =
+                  (order['F_CustomerName'] ?? '').toString().toLowerCase();
+              final colorMatch = filter == null || order['color'] == filter;
+              final textMatch =
+                  orderNo.contains(searchText.toLowerCase()) ||
+                  customer.contains(searchText.toLowerCase());
+              return colorMatch && textMatch;
+            }).toList();
+      }
     });
   }
 
@@ -80,6 +112,74 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
         builder: (context) => PickingListScreen(orderNo: saleOrderNo),
       ),
     ).then((_) => _fetchOrders());
+  }
+
+  void _showColorFilterMenu() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildColorChip(null, 'ทั้งหมด'),
+              _buildColorChip('red', 'แดง'),
+              _buildColorChip('yellow', 'เหลือง'),
+              _buildColorChip('pink', 'ชมพู'),
+              _buildColorChip('blue', 'น้ำเงิน'),
+              _buildColorChip('purple', 'ม่วง'),
+              _buildColorChip('lightsky', 'ฟ้า'),
+              _buildColorChip('brown', 'น้ำตาล'),
+              _buildColorChip('lightgreen', 'เขียวอ่อน'),
+              _buildColorChip('green', 'เขียว'),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildColorChip(String? colorCode, String label) {
+    final isSelected = selectedColor == colorCode;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context);
+        setState(() {
+          selectedColor = colorCode;
+        });
+        _fetchOrders();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue.shade50 : Colors.white,
+          border: Border.all(color: Colors.grey.shade400),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (colorCode != null)
+              Container(
+                width: 10,
+                height: 10,
+                margin: const EdgeInsets.only(right: 6),
+                decoration: BoxDecoration(
+                  color: _mapColor(colorCode),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            Text(label, style: const TextStyle(fontSize: 13)),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -238,7 +338,7 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
     }
   }
 
-  Color _mapColor(String color) {
+  Color _mapColor(String? color) {
     switch (color) {
       case 'red':
         return const Color(0xFFFE0000);

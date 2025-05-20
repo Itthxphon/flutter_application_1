@@ -1,3 +1,4 @@
+// import ต่าง ๆ เหมือนเดิม
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -43,7 +44,9 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
     final productId = _controller.text.trim();
     if (productId.isEmpty) return;
 
-    final alreadyScanned = _resultList.any((item) => item['F_ProductId'] == productId);
+    final alreadyScanned = _resultList.any(
+      (item) => item['F_ProductId'] == productId,
+    );
     if (alreadyScanned) {
       setState(() {
         _error = 'สแกนซ้ำ: $productId';
@@ -90,27 +93,29 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('เปลี่ยน Location'),
-        content: TextField(
-          controller: _locationController,
-          decoration: const InputDecoration(
-            labelText: 'Location ใหม่ (ยิง Barcode ได้)',
+      builder:
+          (context) => AlertDialog(
+            title: const Text('เปลี่ยน Location'),
+            content: TextField(
+              controller: _locationController,
+              decoration: const InputDecoration(
+                labelText: 'Location ใหม่ (ยิง Barcode ได้)',
+              ),
+              autofocus: true,
+              onSubmitted: (value) => _confirmLocation(productId, value),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('ยกเลิก'),
+              ),
+              ElevatedButton(
+                onPressed:
+                    () => _confirmLocation(productId, _locationController.text),
+                child: const Text('ยืนยัน'),
+              ),
+            ],
           ),
-          autofocus: true,
-          onSubmitted: (value) => _confirmLocation(productId, value),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('ยกเลิก'),
-          ),
-          ElevatedButton(
-            onPressed: () => _confirmLocation(productId, _locationController.text),
-            child: const Text('ยืนยัน'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -124,18 +129,20 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
       final result = await ApiService.changeLocation(
         productId: productId,
         newLocation: newLocation,
-        employeeId: 'EMP001', // 🔁 ปรับให้ใช้จากระบบ login
+        employeeId: 'EMP001', // 🔁 ปรับให้ดึงจากระบบ login
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'] ?? 'เปลี่ยน Location สำเร็จ')),
+          SnackBar(
+            content: Text(result['message'] ?? 'เปลี่ยน Location สำเร็จ'),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
       }
     }
   }
@@ -157,29 +164,50 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
 
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 6),
+          elevation: 3,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   item['F_ProductName'] ?? '-',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
-                const SizedBox(height: 6),
-                Text('รหัสสินค้า: ${item['F_ProductId'] ?? '-'}'),
-                Text('ยี่ห้อ: ${item['F_ProductBrandName'] ?? '-'}'),
-                Text('กลุ่มสินค้า: ${item['F_ProductGroupName'] ?? '-'}'),
-                Text('จำนวนคงเหลือ: ${item['F_StockBalance'] ?? '-'} ${item['F_UnitName'] ?? ''}'),
-                Text('ที่เก็บ: ${item['F_Location'] ?? '-'}'),
+                const SizedBox(height: 4),
+                Text('รหัสสินค้า : ${item['F_ProductId'] ?? '-'}'),
+                Text('ยี่ห้อ : ${item['F_ProductBrandName'] ?? '-'}'),
+                Text('กลุ่มสินค้า : ${item['F_ProductGroupName'] ?? '-'}'),
+                Text(
+                  'จำนวนคงเหลือ : ${item['F_StockBalance'] ?? '-'} ${item['F_UnitName'] ?? ''}',
+                ),
+                Text('ที่เก็บ : ${item['F_Location'] ?? '-'}'),
                 const SizedBox(height: 8),
-                ElevatedButton.icon(
-                  onPressed: () => _showChangeLocationDialog(item['F_ProductId']),
-                  icon: const Icon(Icons.edit_location_alt),
-                  label: const Text('เปลี่ยน Location'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange.shade600,
-                    foregroundColor: Colors.white,
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: ElevatedButton.icon(
+                    onPressed:
+                        () => _showChangeLocationDialog(item['F_ProductId']),
+                    icon: const Icon(Icons.edit_location_alt),
+                    label: const Text('เปลี่ยน Location'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      textStyle: const TextStyle(fontSize: 13),
+                    ),
                   ),
                 ),
               ],
@@ -195,8 +223,14 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F0FF),
       appBar: AppBar(
-        title: const Text('สแกนหลาย ProductID'),
-        backgroundColor: Colors.deepPurple.shade400,
+        backgroundColor: const Color(0xFF1B1F2B),
+        title: const Text(
+          'เปลี่ยนสถานที่',
+          style: TextStyle(color: Colors.white), // สีข้อความขาว
+        ),
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ), // ไอคอนทั้งหมดเป็นสีขาว
         actions: [
           IconButton(
             onPressed: _clearScans,
@@ -205,26 +239,51 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
           ),
         ],
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            TextField(
-              controller: _controller,
-              decoration: const InputDecoration(
-                labelText: 'ProductID',
-                border: OutlineInputBorder(),
-              ),
-              onSubmitted: (_) => _scanProduct(),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    autofocus: true, // ✅ เปิดออโต้โฟกัส
+                    decoration: InputDecoration(
+                      hintText: 'กรอก/สแกน ProductID',
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onSubmitted:
+                        (_) => _scanProduct(), // ✅ ยิงแล้วทำงานได้ทันที
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  height: 48,
+                  width: 48,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1B1F2B),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.qr_code_scanner,
+                      color: Colors.white,
+                    ),
+                    onPressed: _scanProduct, // ✅ ปุ่มทำงานเหมือนยิง
+                    tooltip: 'สแกน / ค้นหา',
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _scanProduct,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple.shade300,
-              ),
-              child: const Text('สแกน / ค้นหา'),
-            ),
+
             const SizedBox(height: 16),
             if (_isLoading)
               const CircularProgressIndicator()
