@@ -128,10 +128,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               ? AppBar(
                 backgroundColor: const Color(0xFF1B1F2B),
                 foregroundColor: Colors.white,
-                leading: IconButton(
-                  icon: const Icon(Icons.tune),
-                  tooltip: 'กรองตามสีวันจัดส่ง',
-                  onPressed: _showColorFilterMenu,
+                leading: Padding(
+                  padding: const EdgeInsets.only(
+                    left: 10,
+                  ), // 👈 ห่างจากซ้ายเล็กน้อย
+                  child: IconButton(
+                    icon: const Icon(Icons.tune, size: 28), // ✅ ขนาดใหญ่ขึ้น
+                    tooltip: 'กรองตามสีวันจัดส่ง',
+                    onPressed: _showColorFilterMenu,
+                  ),
                 ),
                 title: const Text(
                   'เช็ค Serial Number',
@@ -139,47 +144,53 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 ),
                 centerTitle: true,
                 actions: [
-                  Stack(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.notifications),
-                        tooltip: 'งานวันนี้ที่ยังไม่ทำ',
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('คุณมีงานค้างที่ยังไม่ตรวจ SN'),
-                            ),
-                          );
-                        },
-                      ),
-                      if (_pendingCount > 0)
-                        Positioned(
-                          top: 6,
-                          right: 6,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              '$_pendingCount',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      right: 12,
+                    ), // ห่างจากขวาหน่อย
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.notifications, size: 28),
+                          tooltip: 'งานวันนี้ที่ยังไม่ทำ',
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('คุณมีงานค้างที่ยังไม่ตรวจ SN'),
+                              ),
+                            );
+                          },
+                        ),
+                        if (_pendingCount > 0)
+                          Positioned(
+                            top: 6,
+                            right: 6,
+                            child: Container(
+                              width: 20,
+                              height: 20,
+                              alignment: Alignment.center,
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                _pendingCount > 99 ? '99+' : '$_pendingCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               )
               : null,
+
       body: IndexedStack(
         index: _currentIndex,
         children: [
