@@ -16,12 +16,24 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
   final FocusNode _focusNode = FocusNode();
   final List<Map<String, dynamic>> _resultList = [];
   bool _isLoading = false;
+  String? _employeeId; // ✅ เพิ่มตัวแปรเก็บ employeeId
 
   @override
   void initState() {
     super.initState();
     _loadSavedScans();
+    _loadEmployeeId(); // ✅ โหลด employeeId ตอนเริ่มต้น
   }
+
+  Future<void> _loadEmployeeId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final loadedId = prefs.getString('employeeId') ?? 'UNKNOWN';
+    print('Loaded employeeId: $loadedId');
+    setState(() {
+      _employeeId = loadedId;
+    });
+  }
+
 
   Future<void> _loadSavedScans() async {
     final prefs = await SharedPreferences.getInstance();
@@ -45,7 +57,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
     if (productId.isEmpty) return;
 
     final alreadyScanned = _resultList.any(
-      (item) => item['F_ProductId'] == productId,
+          (item) => item['F_ProductId'] == productId,
     );
     if (alreadyScanned) {
       _showAlertDialog(
@@ -88,27 +100,26 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
   void _showAlertDialog({required String title, required String message}) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: const Color(0xFFF8F0FF),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1B1F2B),
-              ),
-            ),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('ตกลง'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFF8F0FF),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1B1F2B),
           ),
+        ),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('ตกลง'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -226,13 +237,13 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
   Future<void> _confirmLocation(String productId, String location) async {
     final newLocation = location.trim();
     if (newLocation.isEmpty) return;
-    Navigator.pop(context);
+    // Navigator.pop(context);
 
     try {
       final result = await ApiService.changeLocation(
         productId: productId,
         newLocation: newLocation,
-        employeeId: 'EMP001',
+        employeeId: _employeeId ?? 'UNKNOWN', // ✅ ใช้ค่าโหลดจาก SharedPreferences
       );
 
       if (mounted) {
@@ -297,9 +308,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                     icon: const Icon(Icons.edit_location_alt),
                     label: const Text('เปลี่ยน Location'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(
-                        0xFF1B1F2B,
-                      ), // 🟢 เปลี่ยนเป็นสีเข้ม
+                      backgroundColor: const Color(0xFF1B1F2B),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),

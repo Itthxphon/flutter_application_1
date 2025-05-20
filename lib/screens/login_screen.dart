@@ -32,13 +32,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (result['success']) {
         final prefs = await SharedPreferences.getInstance();
+        final user = result['user'];
+
+        print('✅ Login success user: $user');
+
         await prefs.setString('userID', userID);
+        await prefs.setString('employeeId', user['F_EmployeeID'] ?? 'UNKNOWN');
+        print('✅ Saved employeeId: ${user['F_EmployeeID']}');
 
-        _showDialog('เข้าสู่ระบบสำเร็จ', isSuccess: true, autoClose: true);
-
-        await Future.delayed(const Duration(milliseconds: 500));
         if (mounted) {
-          Navigator.of(context).pop(); // ปิด dialog
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('เข้าสู่ระบบสำเร็จ')),
+          );
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
@@ -56,61 +62,55 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     } catch (e) {
-      _showDialog('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+      _showDialog('เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
   void _showDialog(
-    String message, {
-    bool isSuccess = false,
-    bool autoClose = false,
-  }) {
+      String message, {
+        bool isSuccess = false,
+        bool autoClose = false,
+      }) {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder:
-          (_) => AlertDialog(
-            contentPadding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+      builder: (_) => AlertDialog(
+        contentPadding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      isSuccess
-                          ? Icons.check_circle_outline
-                          : Icons.error_outline,
-                      color: isSuccess ? Colors.green : Colors.red,
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'แจ้งเตือน',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
+                Icon(
+                  isSuccess
+                      ? Icons.check_circle_outline
+                      : Icons.error_outline,
+                  color: isSuccess ? Colors.green : Colors.red,
                 ),
-                const SizedBox(height: 12),
-                Text(message, style: const TextStyle(fontSize: 14)),
+                const SizedBox(width: 8),
+                const Text(
+                  'แจ้งเตือน',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
               ],
             ),
-            actions: [
-              Visibility(
-                visible: !autoClose,
-                child: TextButton(
-                  onPressed: () {
-                    if (!autoClose) Navigator.pop(context);
-                  },
-                  child: const Text('ตกลง'),
-                ),
-              ),
-            ],
+            const SizedBox(height: 12),
+            Text(message, style: const TextStyle(fontSize: 14)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('ตกลง'),
           ),
+        ],
+      ),
     );
   }
 
@@ -207,17 +207,15 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child:
-                              _isLoading
-                                  ? const CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
-                                    ),
-                                  )
-                                  : const Text(
-                                    'เข้าสู่ระบบ',
-                                    style: TextStyle(fontSize: 14),
-                                  ),
+                          child: _isLoading
+                              ? const CircularProgressIndicator(
+                            valueColor:
+                            AlwaysStoppedAnimation<Color>(Colors.white),
+                          )
+                              : const Text(
+                            'เข้าสู่ระบบ',
+                            style: TextStyle(fontSize: 14),
+                          ),
                         ),
                       ),
                     ],
