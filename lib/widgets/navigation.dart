@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/sale_orders.dart';
-import '../screens/ScanProductIdScreen.dart';
+import '../screens/login_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
@@ -118,93 +119,132 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     }
   }
 
+  void _confirmLogout() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('ยืนยันการออกจากระบบ'),
+            content: const Text('คุณต้องการออกจากระบบหรือไม่?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('ยกเลิก'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.clear();
+                  if (!mounted) return;
+
+                  Navigator.pop(context); // ปิด dialog
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('ตกลง'),
+              ),
+            ],
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isCheckSN = _currentIndex == 0;
-
     return Scaffold(
-      appBar:
-          isCheckSN
-              ? AppBar(
-                backgroundColor: const Color(0xFF1B1F2B),
-                foregroundColor: Colors.white,
-                leading: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 10,
-                  ), // 👈 ห่างจากซ้ายเล็กน้อย
-                  child: IconButton(
-                    icon: const Icon(Icons.tune, size: 28), // ✅ ขนาดใหญ่ขึ้น
-                    tooltip: 'กรองตามสีวันจัดส่ง',
-                    onPressed: _showColorFilterMenu,
-                  ),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1B1F2B),
+        foregroundColor: Colors.white,
+        title: Row(
+          children: [
+            // 🔍 ปุ่มกรองซ้าย
+            IconButton(
+              icon: const Icon(Icons.tune, size: 28),
+              tooltip: 'กรองตามสีวันจัดส่ง',
+              onPressed: _showColorFilterMenu,
+            ),
+            const Spacer(),
+
+            // ตรงกลาง: ชื่อหน้าจอ
+            const Text(
+              'เช็ค Serial Number',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ),
+            const Spacer(),
+
+            //ปุ่มกระดิ่ง
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.notifications, size: 28),
+                  tooltip: 'งานวันนี้ที่ยังไม่ทำ',
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('คุณมีงานค้างที่ยังไม่ตรวจ SN'),
+                      ),
+                    );
+                  },
                 ),
-                title: const Text(
-                  'เช็ค Serial Number',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                centerTitle: true,
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      right: 12,
-                    ), // ห่างจากขวาหน่อย
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.notifications, size: 28),
-                          tooltip: 'งานวันนี้ที่ยังไม่ทำ',
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('คุณมีงานค้างที่ยังไม่ตรวจ SN'),
-                              ),
-                            );
-                          },
+                if (_pendingCount > 0)
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      width: 20,
+                      height: 20,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        _pendingCount > 99 ? '99+' : '$_pendingCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
                         ),
-                        if (_pendingCount > 0)
-                          Positioned(
-                            top: 6,
-                            right: 6,
-                            child: Container(
-                              width: 20,
-                              height: 20,
-                              alignment: Alignment.center,
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text(
-                                _pendingCount > 99 ? '99+' : '$_pendingCount',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+                      ),
                     ),
                   ),
-                ],
-              )
-              : null,
+              ],
+            ),
 
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          SaleOrdersScreen(
-            key: ValueKey(_colorFilter),
-            colorFilter: _colorFilter,
-            onPendingCountChanged: _updatePendingCount,
-          ),
-          const ScanProductIdScreen(),
-        ],
+            // 🚪 Logout
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'ออกจากระบบ',
+              onPressed: _confirmLogout,
+            ),
+          ],
+        ),
+        automaticallyImplyLeading: false,
+      ),
+
+      body: SaleOrdersScreen(
+        key: ValueKey(_colorFilter),
+        colorFilter: _colorFilter,
+        onPendingCountChanged: _updatePendingCount,
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        onTap: (index) {
+          if (index == 0) {
+            setState(() => _currentIndex = 0);
+          } else if (index == 1) {
+            Navigator.pushNamed(
+              context,
+              '/change-location',
+            ); // ✅ ไปหน้าเปลี่ยนสถานที่
+          }
+        },
         backgroundColor: const Color(0xFF1B1F2B),
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.white54,

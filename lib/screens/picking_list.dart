@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
+import 'login_screen.dart'; // ✅ เพิ่ม import
 
 class PickingListScreen extends StatefulWidget {
   final String orderNo;
@@ -85,6 +87,40 @@ class _PickingListScreenState extends State<PickingListScreen> {
     return productId == selectedProductId && index == selectedIndex;
   }
 
+  void _confirmLogout() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('ยืนยันการออกจากระบบ'),
+            content: const Text('คุณต้องการออกจากระบบหรือไม่?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('ยกเลิก'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(context); // ปิด dialog
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.clear();
+                  if (!mounted) return;
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('ตกลง'),
+              ),
+            ],
+          ),
+    );
+  }
+
   Widget _buildInfoBox(String title, String value, Color numberColor) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
@@ -133,6 +169,13 @@ class _PickingListScreenState extends State<PickingListScreen> {
             ),
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'ออกจากระบบ',
+            onPressed: _confirmLogout,
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -203,11 +246,7 @@ class _PickingListScreenState extends State<PickingListScreen> {
                                       height: 90,
                                       width: 90,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (
-                                        context,
-                                        error,
-                                        stackTrace,
-                                      ) {
+                                      errorBuilder: (context, error, stack) {
                                         return Image.asset(
                                           'assets/images/no_image.png',
                                           height: 70,

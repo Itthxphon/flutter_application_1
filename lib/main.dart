@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'screens/login_screen.dart';
-import 'widgets/navigation.dart'; // MainNavigationScreen
-import 'screens/scan_stock.dart';
+import 'screens/ScanProductIdScreen.dart'; // ✅ หน้าจอเปลี่ยนสถานที่
+import 'screens/scan_stock.dart'; // ✅ หน้าจอสแกน SN
+import 'widgets/navigation.dart'; // ✅ หน้าหลักหลังล็อกอิน
 
 void main() async {
-  // ✅ สำคัญมาก สำหรับ shared_preferences
-  WidgetsFlutterBinding.ensureInitialized();
-
+  WidgetsFlutterBinding.ensureInitialized(); // สำหรับ shared_preferences
   runApp(const MyApp());
 }
 
@@ -25,8 +24,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Genius App',
+      title: 'ScanPro',
       theme: ThemeData(primarySwatch: Colors.deepPurple),
+
+      // ✅ หน้าหลักของแอป (Login หรือ MainNavigation)
       home: FutureBuilder<Widget>(
         future: _getInitialScreen(),
         builder: (context, snapshot) {
@@ -38,6 +39,8 @@ class MyApp extends StatelessWidget {
           return snapshot.data ?? const LoginScreen();
         },
       ),
+
+      // ✅ ตั้งชื่อ route ที่ต้องใช้
       onGenerateRoute: (settings) {
         if (settings.name == '/scan') {
           final args = settings.arguments as Map<String, dynamic>;
@@ -56,9 +59,26 @@ class MyApp extends StatelessWidget {
                           : int.tryParse(args['F_Qty'].toString()) ?? 0,
                   location: args['F_Location'] ?? '',
                 ),
+            settings: settings,
           );
         }
 
+        if (settings.name == '/change-location') {
+          return MaterialPageRoute(
+            builder: (context) => const ScanProductIdScreen(),
+            settings: settings,
+          );
+        }
+
+        // ✅ เพิ่ม route สำหรับกลับไปหน้า MainNavigation
+        if (settings.name == '/main') {
+          return MaterialPageRoute(
+            builder: (context) => const MainNavigationScreen(),
+            settings: settings,
+          );
+        }
+
+        // หน้าที่ไม่พบ
         return MaterialPageRoute(
           builder:
               (context) =>

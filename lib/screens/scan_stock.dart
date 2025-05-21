@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import '../services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../screens/login_screen.dart';
 
 class ScanStockScreen extends StatefulWidget {
   final String saleOrderNo;
@@ -152,6 +154,40 @@ class _ScanStockScreenState extends State<ScanStockScreen>
     );
   }
 
+  void _confirmLogout() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('ยืนยันการออกจากระบบ'),
+            content: const Text('คุณต้องการออกจากระบบหรือไม่?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('ยกเลิก'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(context); // ปิด dialog ยืนยัน
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.clear();
+                  if (!mounted) return;
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('ตกลง'),
+              ),
+            ],
+          ),
+    );
+  }
+
   void _showAlert(String title, String message) {
     showDialog(
       context: context,
@@ -197,6 +233,13 @@ class _ScanStockScreenState extends State<ScanStockScreen>
                 centerTitle: true,
                 backgroundColor: const Color(0xFF1A1A2E),
                 foregroundColor: Colors.white,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.logout),
+                    tooltip: 'ออกจากระบบ',
+                    onPressed: _confirmLogout,
+                  ),
+                ],
               ),
               body: RefreshIndicator(
                 onRefresh: _loadScannedSNs,

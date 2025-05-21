@@ -41,14 +41,17 @@ class _LoginScreenState extends State<LoginScreen> {
         print('✅ Saved employeeId: ${user['F_EmployeeID']}');
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('เข้าสู่ระบบสำเร็จ')),
-          );
-
-          Navigator.pushReplacement(
+          ScaffoldMessenger.of(
             context,
-            MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-          );
+          ).showSnackBar(const SnackBar(content: Text('เข้าสู่ระบบสำเร็จ')));
+
+          // ✅ ป้องกัน error "scheduleFrameCallback"
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+            );
+          });
         }
       } else {
         final errorMsg = result['message']?.toLowerCase() ?? '';
@@ -69,48 +72,49 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showDialog(
-      String message, {
-        bool isSuccess = false,
-        bool autoClose = false,
-      }) {
+    String message, {
+    bool isSuccess = false,
+    bool autoClose = false,
+  }) {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        contentPadding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      builder:
+          (_) => AlertDialog(
+            contentPadding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  isSuccess
-                      ? Icons.check_circle_outline
-                      : Icons.error_outline,
-                  color: isSuccess ? Colors.green : Colors.red,
+                Row(
+                  children: [
+                    Icon(
+                      isSuccess
+                          ? Icons.check_circle_outline
+                          : Icons.error_outline,
+                      color: isSuccess ? Colors.green : Colors.red,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'แจ้งเตือน',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                const Text(
-                  'แจ้งเตือน',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
+                const SizedBox(height: 12),
+                Text(message, style: const TextStyle(fontSize: 14)),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(message, style: const TextStyle(fontSize: 14)),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('ตกลง'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('ตกลง'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -207,15 +211,17 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: _isLoading
-                              ? const CircularProgressIndicator(
-                            valueColor:
-                            AlwaysStoppedAnimation<Color>(Colors.white),
-                          )
-                              : const Text(
-                            'เข้าสู่ระบบ',
-                            style: TextStyle(fontSize: 14),
-                          ),
+                          child:
+                              _isLoading
+                                  ? const CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  )
+                                  : const Text(
+                                    'เข้าสู่ระบบ',
+                                    style: TextStyle(fontSize: 14),
+                                  ),
                         ),
                       ),
                     ],
