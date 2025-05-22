@@ -355,6 +355,8 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
       itemCount: _resultList.length,
       itemBuilder: (context, index) {
         final item = _resultList[index];
+        final imagePath = item['imagePath']?.toString() ?? '';
+
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 6),
           elevation: 3,
@@ -370,7 +372,36 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                   item['F_ProductName'] ?? '-',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 12),
+
+                // ✅ รูปอยู่ตรงกลาง + มีเงา
+                Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: SizedBox(
+                      width: 300,
+                      height: 220,
+                      child:
+                          imagePath.isNotEmpty
+                              ? Image.network(
+                                imagePath,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Image.asset(
+                                    'assets/images/pp.png',
+                                    fit: BoxFit.cover,
+                                  );
+                                },
+                              )
+                              : Image.asset(
+                                'assets/images/products.png',
+                                fit: BoxFit.cover,
+                              ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
                 Text('รหัสสินค้า : ${item['F_ProductId'] ?? '-'}'),
                 Text('ยี่ห้อ : ${item['F_ProductBrandName'] ?? '-'}'),
                 Text('กลุ่มสินค้า : ${item['F_ProductGroupName'] ?? '-'}'),
@@ -378,7 +409,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                   'จำนวนคงเหลือ : ${item['F_StockBalance'] ?? '-'} ${item['F_UnitName'] ?? ''}',
                 ),
                 Text('ที่เก็บ : ${item['F_Location'] ?? '-'}'),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Align(
                   alignment: Alignment.centerRight,
                   child: ElevatedButton.icon(
@@ -468,26 +499,31 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      onSubmitted: (_) => _scanProduct(),
-                      decoration: InputDecoration(
-                        hintText: 'กรอก/สแกน ProductID',
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                          horizontal: 12,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    child: SizedBox(
+                      height: 40,
+                      child: TextField(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        onSubmitted: (_) => _scanProduct(),
+                        style: const TextStyle(fontSize: 13),
+                        decoration: InputDecoration(
+                          hintText: 'กรอก/สแกน ProductID',
+                          hintStyle: const TextStyle(fontSize: 13),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 0,
+                            horizontal: 10,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Container(
-                    height: 48,
-                    width: 48,
+                    height: 40,
+                    width: 40,
                     decoration: BoxDecoration(
                       color: const Color(0xFF1B1F2B),
                       borderRadius: BorderRadius.circular(8),
@@ -495,15 +531,18 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                     child: IconButton(
                       icon: const Icon(
                         Icons.qr_code_scanner,
+                        size: 20,
                         color: Colors.white,
                       ),
+                      padding: EdgeInsets.zero,
                       onPressed: _scanProduct,
                       tooltip: 'สแกน / ค้นหา',
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+
+              const SizedBox(height: 10),
               if (_isLoading) const CircularProgressIndicator(),
               _buildResultList(),
             ],
