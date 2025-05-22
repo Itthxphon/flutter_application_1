@@ -233,13 +233,6 @@ class _ScanStockScreenState extends State<ScanStockScreen>
                 centerTitle: true,
                 backgroundColor: const Color(0xFF1A1A2E),
                 foregroundColor: Colors.white,
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.logout),
-                    tooltip: 'ออกจากระบบ',
-                    onPressed: _confirmLogout,
-                  ),
-                ],
               ),
               body: RefreshIndicator(
                 onRefresh: _loadScannedSNs,

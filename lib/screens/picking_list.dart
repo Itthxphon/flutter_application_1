@@ -169,13 +169,6 @@ class _PickingListScreenState extends State<PickingListScreen> {
             ),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'ออกจากระบบ',
-            onPressed: _confirmLogout,
-          ),
-        ],
       ),
       body: Column(
         children: [
