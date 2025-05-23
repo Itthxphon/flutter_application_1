@@ -15,13 +15,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
   int _pendingCount = 0;
   String? _colorFilter;
+  String? _employeeName;
 
   final List<Widget> _screens = [];
-  final List<String> _titles = ['เช็ค Serial Number', 'เปลี่ยน Location'];
+  final List<String> _titles = ['เช็ค Serial Number', 'เปลี่ยนสถานที่'];
 
   @override
   void initState() {
     super.initState();
+    _loadEmployeeInfo();
+
     _screens.add(
       SaleOrdersScreen(
         key: ValueKey(_colorFilter),
@@ -30,6 +33,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
     );
     _screens.add(const ScanProductIdScreen());
+  }
+
+  Future<void> _loadEmployeeInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString('employeeName');
+
+    setState(() {
+      _employeeName = name ?? 'ไม่พบชื่อพนักงาน';
+    });
   }
 
   void _updatePendingCount(int count) {
@@ -54,70 +66,89 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
     showModalBottomSheet(
       context: context,
+      backgroundColor: const Color(0xFFF7F0FA), // สีพื้นหลังแบบในภาพ
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
         return Padding(
-          padding: const EdgeInsets.all(16),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 360,
-            ), // 110 * 3 + spacing
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children:
-                  colors.entries.map((entry) {
-                    final isSelected = _colorFilter == entry.key;
-                    final colorDot = _mapColor(entry.key);
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _colorFilter = entry.key;
-                          _screens[0] = SaleOrdersScreen(
-                            key: ValueKey(_colorFilter),
-                            colorFilter: _colorFilter,
-                            onPendingCountChanged: _updatePendingCount,
-                          );
-                        });
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        width: 110,
-                        height: 42,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        decoration: BoxDecoration(
-                          color:
-                              isSelected ? Colors.blue.shade50 : Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: Row(
-                          children: [
-                            if (entry.key != null)
-                              Container(
-                                width: 12,
-                                height: 12,
-                                margin: const EdgeInsets.only(right: 8),
-                                decoration: BoxDecoration(
-                                  color: colorDot,
-                                  shape: BoxShape.circle,
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'กรองตามสีวันจัดส่ง',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              Center(
+                child: SizedBox(
+                  width: 346,
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children:
+                        colors.entries.map((entry) {
+                          final isSelected = _colorFilter == entry.key;
+                          final colorDot = _mapColor(entry.key);
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _colorFilter = entry.key;
+                                _screens[0] = SaleOrdersScreen(
+                                  key: ValueKey(_colorFilter),
+                                  colorFilter: _colorFilter,
+                                  onPendingCountChanged: _updatePendingCount,
+                                );
+                              });
+                              Navigator.pop(context);
+                            },
+                            child: Container(
+                              width: 104,
+                              height: 42,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color:
+                                      isSelected
+                                          ? Colors.lightBlue
+                                          : Colors.grey.shade300,
+                                  width: 1.5,
                                 ),
                               ),
-                            Flexible(
-                              child: Text(
-                                entry.value,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 13),
+                              child: Row(
+                                children: [
+                                  if (entry.key != null)
+                                    Container(
+                                      width: 12,
+                                      height: 12,
+                                      margin: const EdgeInsets.only(right: 6),
+                                      decoration: BoxDecoration(
+                                        color: colorDot,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  Flexible(
+                                    child: Text(
+                                      entry.value,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
-            ),
+                          );
+                        }).toList(),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -202,15 +233,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: BoxDecoration(color: Colors.blueGrey.shade700),
+            decoration: const BoxDecoration(color: Color(0xFF1B1F2B)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Icon(Icons.account_circle, size: 48, color: Colors.white),
-                SizedBox(height: 10),
+              children: [
+                const Icon(Icons.account_circle, size: 48, color: Colors.white),
+                const SizedBox(height: 10),
                 Text(
-                  'Genius Group',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+                  _employeeName ?? 'กำลังโหลด...',
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ],
             ),
@@ -226,7 +257,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
           ListTile(
             leading: const Icon(Icons.edit_location_alt),
-            title: const Text('เปลี่ยน Location'),
+            title: const Text('เปลี่ยนสถานที่'),
             selected: _selectedIndex == 1,
             onTap: () {
               setState(() => _selectedIndex = 1);
@@ -255,14 +286,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               ? AppBar(
                 backgroundColor: const Color(0xFF1B1F2B),
                 foregroundColor: Colors.white,
-                centerTitle: true,
-                title: Text(_titles[_selectedIndex]),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.tune, size: 28),
-                    tooltip: 'กรองตามสีวันจัดส่ง',
-                    onPressed: _showColorFilterMenu,
+                centerTitle: false, // ⬅️ ไม่จัดกลาง เพื่อควบคุมเอง
+                title: Padding(
+                  padding: const EdgeInsets.only(left: 8), // ⬅️ ขยับ title ซ้าย
+                  child: Text(
+                    _titles[_selectedIndex],
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
+                ),
+                actions: [
                   Stack(
                     clipBehavior: Clip.none,
                     children: [
@@ -301,9 +336,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                         ),
                     ],
                   ),
+                  IconButton(
+                    icon: const Icon(Icons.tune, size: 28),
+                    tooltip: 'กรองตามสีวันจัดส่ง',
+                    onPressed: _showColorFilterMenu,
+                  ),
                 ],
               )
               : null,
+
       drawer: _buildDrawer(),
       body: _screens[_selectedIndex],
     );

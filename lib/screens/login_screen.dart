@@ -38,6 +38,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
         await prefs.setString('userID', userID);
         await prefs.setString('employeeId', user['F_EmployeeID'] ?? 'UNKNOWN');
+        await prefs.setString(
+          'employeeName',
+          user['f_EmployeeName'] ?? 'ไม่ทราบชื่อ',
+        );
+
+        await prefs.setString(
+          'employeeName',
+          user['f_EmployeeName'] ?? 'ไม่ทราบชื่อ',
+        );
         print('✅ Saved employeeId: ${user['F_EmployeeID']}');
 
         if (mounted) {
