@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
 import '../services/api_service.dart';
+import 'package:intl/intl.dart';
 
 class ScanProductIdScreen extends StatefulWidget {
   const ScanProductIdScreen({Key? key}) : super(key: key);
@@ -104,38 +105,44 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
     bool autoClose = false,
     Duration duration = const Duration(seconds: 2),
   }) {
+    bool isDialogOpen = true;
+
     showDialog(
       context: context,
-      barrierDismissible: !autoClose,
-      builder:
-          (_) => AlertDialog(
-            backgroundColor: const Color(0xFFF8F0FF),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1B1F2B),
-              ),
-            ),
-            content: Text(message),
-            actions:
-                autoClose
-                    ? null
-                    : [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('ตกลง'),
-                      ),
-                    ],
+      barrierDismissible: true, // ✅ แตะนอกกล่องเพื่อปิด
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFF8F0FF),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
+          title: Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1B1F2B),
+            ),
+          ),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                if (isDialogOpen && Navigator.of(context).canPop()) {
+                  isDialogOpen = false;
+                  Navigator.of(context).pop();
+                }
+              },
+              child: const Text('ตกลง'),
+            ),
+          ],
+        );
+      },
     );
 
     if (autoClose) {
       Future.delayed(duration, () {
-        if (Navigator.of(context).canPop()) {
+        if (isDialogOpen && Navigator.of(context).canPop()) {
+          isDialogOpen = false;
           Navigator.of(context).pop();
         }
       });
@@ -149,7 +156,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
 
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (context) {
         return BarcodeKeyboardListener(
           onBarcodeScanned: (barcode) {
@@ -331,8 +338,9 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                 Text('ยี่ห้อ : ${item['F_ProductBrandName'] ?? '-'}'),
                 Text('กลุ่มสินค้า : ${item['F_ProductGroupName'] ?? '-'}'),
                 Text(
-                  'จำนวนคงเหลือ : ${item['F_StockBalance'] ?? '-'} ${item['F_UnitName'] ?? ''}',
+                  'จำนวนคงเหลือ : ${NumberFormat('#,###').format(item['F_StockBalance'] ?? 0)} ${item['F_UnitName'] ?? ''}',
                 ),
+
                 Text('ที่เก็บ : ${item['F_Location'] ?? '-'}'),
                 const SizedBox(height: 12),
                 Align(
