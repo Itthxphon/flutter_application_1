@@ -185,6 +185,7 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFFFFFFF),
       body: Column(
         children: [
           Padding(
@@ -235,11 +236,18 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(10),
-                                boxShadow: const [
+                                boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 4,
-                                    offset: Offset(0, 2),
+                                    color: Colors.black.withOpacity(0.08),
+                                    blurRadius: 6,
+                                    spreadRadius: 1,
+                                    offset: const Offset(0, 3), // เงาด้านล่าง
+                                  ),
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.04),
+                                    blurRadius: 6,
+                                    spreadRadius: 1,
+                                    offset: const Offset(0, -2), // เงาด้านบน
                                   ),
                                 ],
                                 border: Border(

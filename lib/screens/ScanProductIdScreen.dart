@@ -292,11 +292,23 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
         final item = _resultList[index];
         final imagePath = item['imagePath']?.toString() ?? '';
 
-        return Card(
+        return Container(
           margin: const EdgeInsets.symmetric(vertical: 6),
-          elevation: 3,
-          shape: RoundedRectangleBorder(
+          decoration: BoxDecoration(
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 4,
+                offset: const Offset(0, -2),
+              ),
+            ],
           ),
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -304,10 +316,21 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item['F_ProductName'] ?? '-',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  '${item['F_ProductId'] ?? '-'}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Color(0xFF1B1F2B),
+                  ),
+                ),
+                const SizedBox(height: 6),
+
+                Text(
+                  'ชื่อสินค้า : ${item['F_ProductName'] ?? '-'}',
+                  style: const TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 12),
+
                 Center(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
@@ -334,15 +357,75 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Text('รหัสสินค้า : ${item['F_ProductId'] ?? '-'}'),
-                Text('ยี่ห้อ : ${item['F_ProductBrandName'] ?? '-'}'),
-                Text('กลุ่มสินค้า : ${item['F_ProductGroupName'] ?? '-'}'),
-                Text(
-                  'จำนวนคงเหลือ : ${NumberFormat('#,###').format(item['F_StockBalance'] ?? 0)} ${item['F_UnitName'] ?? ''}',
-                ),
 
-                Text('ที่เก็บ : ${item['F_Location'] ?? '-'}'),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 4),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text(
+                              'จำนวน',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${NumberFormat('#,###').format(item['F_StockBalance'] ?? 0)} ${item['F_UnitName'] ?? ''}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF008000),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.only(left: 4),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text(
+                              'Location',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item['F_Location'] ?? '-',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF00008B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 12),
+
                 Align(
                   alignment: Alignment.centerRight,
                   child: ElevatedButton.icon(
@@ -375,7 +458,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
       child: Builder(
         builder:
             (context) => Scaffold(
-              backgroundColor: const Color(0xFFF8F0FF),
+              backgroundColor: const Color(0xFFffffff),
               appBar: AppBar(
                 backgroundColor: const Color(0xFF1B1F2B),
                 foregroundColor: Colors.white,

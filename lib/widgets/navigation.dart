@@ -66,7 +66,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFFF7F0FA), // สีพื้นหลังแบบในภาพ
+      backgroundColor: Colors.white, // สีพื้นหลังแบบในภาพ
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -247,14 +247,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.list_alt),
-            title: const Text('เช็ค Serial Number'),
+            leading: const Icon(Icons.list_alt, color: Colors.black),
+            title: const Text(
+              'เช็ค Serial Number',
+              style: TextStyle(color: Colors.black), // ✅ บังคับสีดำ
+            ),
             selected: _selectedIndex == 0,
+            selectedTileColor: Colors.transparent, // ✅ ไม่ต้องมีพื้นหลังม่วง
             onTap: () {
               setState(() => _selectedIndex = 0);
               Navigator.pop(context);
             },
           ),
+
           ListTile(
             leading: const Icon(Icons.edit_location_alt),
             title: const Text('เปลี่ยนสถานที่'),
@@ -281,6 +286,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         _selectedIndex == 0; // ⬅ หน้าแรกเท่านั้นที่ใช้ AppBar จาก Scaffold
 
     return Scaffold(
+      backgroundColor: Color(0xFFFFFFFF),
+
       appBar:
           showAppBarInScaffold
               ? AppBar(

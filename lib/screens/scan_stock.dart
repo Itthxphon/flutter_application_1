@@ -227,7 +227,7 @@ class _ScanStockScreenState extends State<ScanStockScreen>
         child: Stack(
           children: [
             Scaffold(
-              backgroundColor: Colors.grey[100],
+              backgroundColor: const Color(0xFFffffff),
               appBar: AppBar(
                 title: const Text('รายการสินค้า'),
                 centerTitle: true,

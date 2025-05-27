@@ -153,7 +153,7 @@ class _PickingListScreenState extends State<PickingListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 254, 254),
+      backgroundColor: const Color(0xFFffffff),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
         centerTitle: true,
@@ -222,10 +222,16 @@ class _PickingListScreenState extends State<PickingListScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(8),
-                                boxShadow: const [
+                                boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 2,
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 3), // เงาล่าง
+                                  ),
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.06),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, -2), // เงาบน
                                   ),
                                 ],
                               ),
