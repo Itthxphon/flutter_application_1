@@ -198,4 +198,16 @@ class ApiService {
     }
   }
 
+  static Future<List<dynamic>> searchProductChangeLocation(String keyword) async {
+    final uri = Uri.parse('$baseUrl/search-product-changelocation?keyword=$keyword');
+
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('ค้นหาสินค้าในสต็อกล้มเหลว: ${response.body}');
+    }
+  }
+
 }
