@@ -138,7 +138,7 @@ class ApiService {
       uri,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'productId': '', // ❌ ไม่ใช้แล้ว
+        'productId': keyword,
         'productName': keyword, // ✅ ค้นหาเฉพาะชื่อสินค้า
       }),
     );
@@ -181,7 +181,6 @@ class ApiService {
     }
   }
 
-
   static Future<Map<String, dynamic>> confirmStockCheckedRFG({
     required String processOrderId,
   }) async {
@@ -198,8 +197,12 @@ class ApiService {
     }
   }
 
-  static Future<List<dynamic>> searchProductChangeLocation(String keyword) async {
-    final uri = Uri.parse('$baseUrl/search-product-changelocation?keyword=$keyword');
+  static Future<List<dynamic>> searchProductChangeLocation(
+    String keyword,
+  ) async {
+    final uri = Uri.parse(
+      '$baseUrl/search-product-changelocation?keyword=$keyword',
+    );
 
     final response = await http.get(uri);
 
@@ -209,5 +212,4 @@ class ApiService {
       throw Exception('ค้นหาสินค้าในสต็อกล้มเหลว: ${response.body}');
     }
   }
-
 }
