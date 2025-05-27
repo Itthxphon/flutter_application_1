@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
 import '../services/api_service.dart';
 import 'package:intl/intl.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class ScanProductIdScreen extends StatefulWidget {
   const ScanProductIdScreen({Key? key}) : super(key: key);
@@ -47,45 +48,44 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
   Future<void> _scanProduct([String? manualId]) async {
     if (_isInDialogMode) return;
 
-    final productId = manualId?.trim() ?? _controller.text.trim();
-    if (productId.isEmpty) return;
+    final keyword = manualId?.trim() ?? _controller.text.trim();
+    if (keyword.isEmpty) return;
 
-    final alreadyScanned = _resultList.any(
-      (item) => item['F_ProductId'] == productId,
-    );
-    if (alreadyScanned) {
-      _showAlertDialog(
-        title: '⚠️ แจ้งเตือน',
-        message: 'สินค้านี้ถูกสแกนไปแล้ว',
-      );
-      _controller.clear();
-      return;
-    }
-
+    if (!mounted) return;
     setState(() => _isLoading = true);
 
     try {
-      final data = await ApiService.scanProductId(productId);
+      final data = await ApiService.scanProductId(keyword);
+
+      if (!mounted) return;
+
       if (data.isNotEmpty) {
         final casted = data.cast<Map<String, dynamic>>();
+
         setState(() {
           _resultList
             ..clear()
             ..add(casted.first);
         });
+
         await _saveScannedList();
-      } else if (_resultList.isEmpty) {
-        _showAlertDialog(
-          title: '⚠️ ไม่พบสินค้า',
-          message: 'ไม่พบข้อมูลสินค้าสำหรับรหัส: $productId',
-        );
+      } else {
+        if (mounted) {
+          _showAlertDialog(
+            title: '⚠️ ไม่พบสินค้า',
+            message: 'ไม่พบข้อมูลสินค้าสำหรับ: $keyword',
+          );
+        }
       }
     } catch (_) {
-      _showAlertDialog(
-        title: '⚠️ เกิดข้อผิดพลาด',
-        message: 'ไม่พบข้อมูลสินค้า',
-      );
+      if (mounted) {
+        _showAlertDialog(
+          title: '⚠️ เกิดข้อผิดพลาด',
+          message: 'ไม่พบข้อมูลสินค้า',
+        );
+      }
     } finally {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
         _controller.clear();
@@ -250,6 +250,8 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
         employeeId: _employeeId ?? 'UNKNOWN',
       );
 
+      if (!mounted) return;
+
       setState(() {
         final index = _resultList.indexWhere(
           (item) => item['F_ProductId'] == productId,
@@ -379,13 +381,17 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text(
+
+                            AutoSizeText(
                               '${NumberFormat('#,###').format(item['F_StockBalance'] ?? 0)} ${item['F_UnitName'] ?? ''}',
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF008000),
                               ),
+                              maxLines: 1,
+                              minFontSize: 10, // 👈 ปรับขนาดต่ำสุดได้
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
@@ -410,13 +416,16 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text(
+                            AutoSizeText(
                               item['F_Location'] ?? '-',
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF00008B),
                               ),
+                              maxLines: 1,
+                              minFontSize: 10,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
@@ -448,6 +457,13 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
         );
       },
     );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -500,7 +516,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                               onSubmitted: (_) => _scanProduct(),
                               style: const TextStyle(fontSize: 13),
                               decoration: InputDecoration(
-                                hintText: 'กรอก/สแกน ProductID',
+                                hintText: 'ค้นหาชื่อสินค้า หรือสแกน ProductID',
                                 hintStyle: const TextStyle(fontSize: 13),
                                 contentPadding: const EdgeInsets.symmetric(
                                   vertical: 0,
@@ -535,7 +551,9 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                       ],
                     ),
                     const SizedBox(height: 10),
+
                     if (_isLoading) const CircularProgressIndicator(),
+
                     _buildResultList(),
                   ],
                 ),

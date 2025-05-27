@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // static const baseUrl = 'http://192.168.31.180:3000/api';
-  static const baseUrl = 'http://172.16.102.242:3000/api';
+  static const baseUrl = 'http://192.168.31.180:3000/api';
+  // static const baseUrl = 'http://172.16.102.242:3000/api';
   static Future<List<dynamic>> getOrders({String? color}) async {
     final uri = Uri.parse(
       '$baseUrl/orders${color != null ? '?color=$color' : ''}',
@@ -131,17 +131,20 @@ class ApiService {
     }
   }
 
-  static Future<List<dynamic>> scanProductId(String productId) async {
+  static Future<List<dynamic>> scanProductId(String keyword) async {
     final uri = Uri.parse('$baseUrl/scan-product-id');
 
     final response = await http.post(
       uri,
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'productId': productId}),
+      body: jsonEncode({
+        'productId': '', // ❌ ไม่ใช้แล้ว
+        'productName': keyword, // ✅ ค้นหาเฉพาะชื่อสินค้า
+      }),
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body); // return รายการสินค้า (recordset)
+      return jsonDecode(response.body);
     } else if (response.statusCode == 404) {
       throw Exception('ไม่พบข้อมูลสินค้า');
     } else {
