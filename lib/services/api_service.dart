@@ -151,4 +151,51 @@ class ApiService {
       throw Exception('เกิดข้อผิดพลาด: ${response.body}');
     }
   }
+
+  static Future<List<dynamic>> getAllRFG() async {
+    final response = await http.get(Uri.parse('$baseUrl/get-all-rfg'));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('ไม่สามารถโหลดรายการ RFG ได้');
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateLocation({
+    required String processOrderId,
+    required String newLocation,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/update-location'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'processOrderId': processOrderId,
+        'newLocation': newLocation,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('ไม่สามารถอัปเดตสถานที่ได้: ${response.body}');
+    }
+  }
+
+
+  static Future<Map<String, dynamic>> confirmStockCheckedRFG({
+    required String processOrderId,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/confirm-stock-checked-rfg'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'processOrderId': processOrderId}),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body); // message + receiveFGNo
+    } else {
+      throw Exception('ยืนยันการรับ FG ล้มเหลว: ${response.body}');
+    }
+  }
+
 }
