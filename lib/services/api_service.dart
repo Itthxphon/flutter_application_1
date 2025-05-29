@@ -212,4 +212,34 @@ class ApiService {
       throw Exception('ค้นหาสินค้าในสต็อกล้มเหลว: ${response.body}');
     }
   }
+
+  static Future<List<dynamic>> getProcessOrderDetail(
+    String processOrderId,
+  ) async {
+    final uri = Uri.parse('$baseUrl/scan-state?processOrderId=$processOrderId');
+
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else if (response.statusCode == 404) {
+      throw Exception('ไม่พบข้อมูลคำสั่งผลิต');
+    } else {
+      throw Exception('เกิดข้อผิดพลาด: ${response.body}');
+    }
+  }
+
+  static Future<List<dynamic>> getProductsByLocation(String location) async {
+    final uri = Uri.parse('$baseUrl/scan-location?location=$location');
+
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else if (response.statusCode == 404) {
+      throw Exception('ไม่พบข้อมูลสินค้าใน Location นี้');
+    } else {
+      throw Exception('เกิดข้อผิดพลาด: ${response.body}');
+    }
+  }
 }

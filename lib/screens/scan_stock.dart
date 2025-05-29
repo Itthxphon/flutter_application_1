@@ -30,10 +30,13 @@ class ScanStockScreen extends StatefulWidget {
 class _ScanStockScreenState extends State<ScanStockScreen>
     with WidgetsBindingObserver {
   final TextEditingController _snController = TextEditingController();
+  final FocusNode _snFocusNode = FocusNode();
+
   List<String> scannedSNs = [];
   bool isLoading = false;
   bool _isLoadingSNList = true;
   bool visible = true;
+  bool _isManualInput = false; //
 
   @override
   void initState() {
@@ -46,6 +49,7 @@ class _ScanStockScreenState extends State<ScanStockScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _snController.dispose();
+    _snFocusNode.dispose();
     super.dispose();
   }
 
@@ -122,7 +126,7 @@ class _ScanStockScreenState extends State<ScanStockScreen>
 
     if (result['success'] == true) {
       await _loadScannedSNs();
-      _showAlert('✅ ลบสำเร็จ', 'ลบ SN เรียบร้อยแล้ว');
+      _showAlert('ลบสำเร็จ', 'ลบ SN เรียบร้อยแล้ว');
     } else {
       _showAlert('❌ ผิดพลาด', result['message'] ?? 'ไม่สามารถลบได้');
     }
@@ -135,19 +139,51 @@ class _ScanStockScreenState extends State<ScanStockScreen>
       context: context,
       builder:
           (_) => AlertDialog(
-            title: const Text('⚠️ ยืนยันการลบ'),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                SizedBox(width: 8),
+                Text('ยืนยันการลบ'),
+              ],
+            ),
             content: Text('คุณต้องการลบ SN นี้หรือไม่?\n\n$sn'),
+            actionsPadding: const EdgeInsets.only(
+              bottom: 12,
+              right: 12,
+              left: 12,
+            ), // ✅ ระยะห่างปุ่ม
+            actionsAlignment: MainAxisAlignment.end, // ✅ ปุ่มอยู่ชิดกัน
             actions: [
-              TextButton(
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.deepPurple),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 onPressed: () => Navigator.pop(context),
-                child: const Text('กลับ'),
+                child: const Text(
+                  'กลับ',
+                  style: TextStyle(color: Colors.deepPurple),
+                ),
               ),
-              TextButton(
+              const SizedBox(width: 0),
+              ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
                   _deleteSN(sn);
                 },
-                child: const Text('ลบ', style: TextStyle(color: Colors.red)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const Text('ลบ'),
               ),
             ],
           ),
@@ -188,21 +224,67 @@ class _ScanStockScreenState extends State<ScanStockScreen>
     );
   }
 
-  void _showAlert(String title, String message) {
+  void _showAlert(String title, String message, {bool autoClose = true}) {
+    bool isDialogOpen = true;
+
+    if (!mounted) return;
+
     showDialog(
       context: context,
-      builder:
-          (_) => AlertDialog(
-            title: Text(title),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('ตกลง'),
+      barrierDismissible: true,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                title.contains('ลบสำเร็จ')
+                    ? Icons.check_circle_outline
+                    : Icons.info_outline,
+                color:
+                    title.contains('ลบสำเร็จ') ? Colors.green : Colors.orange,
               ),
+              const SizedBox(width: 8),
+              Text(title),
             ],
           ),
+          content: Text(message),
+          actionsPadding: const EdgeInsets.only(bottom: 12, right: 12),
+          actionsAlignment: MainAxisAlignment.end,
+          actions: [
+            OutlinedButton(
+              onPressed: () {
+                if (isDialogOpen && mounted && Navigator.of(context).canPop()) {
+                  isDialogOpen = false;
+                  Navigator.of(context).pop();
+                }
+              },
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                side: const BorderSide(color: Colors.deepPurple),
+              ),
+              child: const Text(
+                'ตกลง',
+                style: TextStyle(color: Colors.deepPurple),
+              ),
+            ),
+          ],
+        );
+      },
     );
+
+    if (autoClose) {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (isDialogOpen && mounted && Navigator.of(context).canPop()) {
+          isDialogOpen = false;
+          Navigator.of(context).pop();
+        }
+      });
+    }
   }
 
   @override
@@ -221,9 +303,12 @@ class _ScanStockScreenState extends State<ScanStockScreen>
         useKeyDownEvent: !kIsWeb && Platform.isWindows,
         onBarcodeScanned: (barcode) {
           if (!visible || barcode.isEmpty) return;
+
+          FocusScope.of(context).unfocus(); // ✅ กันไม่ให้คีย์บอร์ดเด้งจาก focus
           _snController.text = barcode;
           _submitSN();
         },
+
         child: Stack(
           children: [
             Scaffold(
@@ -369,23 +454,27 @@ class _ScanStockScreenState extends State<ScanStockScreen>
     return Row(
       children: [
         Expanded(
-          child: TextField(
-            controller: _snController,
-            decoration: InputDecoration(
-              hintText: 'กรอก/สแกน SN',
-              filled: true,
-              fillColor: Colors.white,
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 8,
+          child: AbsorbPointer(
+            // ❌ ปิดการโต้ตอบทั้งหมด
+            child: TextField(
+              controller: _snController,
+              readOnly: true, // ❌ ห้ามพิมพ์
+              focusNode: FocusNode(), // ❌ ป้องกัน focus
+              decoration: InputDecoration(
+                hintText: 'สแกน SN เท่านั้น',
+                filled: true,
+                fillColor: Colors.grey.shade100,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              style: const TextStyle(fontSize: 14),
             ),
-            style: const TextStyle(fontSize: 14),
-            onSubmitted: (_) => _submitSN(),
           ),
         ),
         const SizedBox(width: 8),

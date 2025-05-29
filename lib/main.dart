@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'screens/login_screen.dart';
-import 'screens/ScanProductIdScreen.dart'; // ✅ หน้าจอเปลี่ยนสถานที่
-import 'screens/scan_stock.dart'; // ✅ หน้าจอสแกน SN
-import 'widgets/navigation.dart'; // ✅ หน้าหลักหลังล็อกอิน
+import 'screens/ScanProductIdScreen.dart';
+import 'screens/scan_stock.dart';
+import 'widgets/navigation.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // สำหรับ shared_preferences
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -27,7 +27,6 @@ class MyApp extends StatelessWidget {
       title: 'ScanPro',
       theme: ThemeData(primarySwatch: Colors.deepPurple),
 
-      // ✅ หน้าหลักของแอป (Login หรือ MainNavigation)
       home: FutureBuilder<Widget>(
         future: _getInitialScreen(),
         builder: (context, snapshot) {
@@ -40,7 +39,6 @@ class MyApp extends StatelessWidget {
         },
       ),
 
-      // ✅ ตั้งชื่อ route ที่ต้องใช้
       onGenerateRoute: (settings) {
         if (settings.name == '/scan') {
           final args = settings.arguments as Map<String, dynamic>;
@@ -70,7 +68,6 @@ class MyApp extends StatelessWidget {
           );
         }
 
-        // ✅ เพิ่ม route สำหรับกลับไปหน้า MainNavigation
         if (settings.name == '/main') {
           return MaterialPageRoute(
             builder: (context) => const MainNavigationScreen(),
@@ -78,7 +75,6 @@ class MyApp extends StatelessWidget {
           );
         }
 
-        // หน้าที่ไม่พบ
         return MaterialPageRoute(
           builder:
               (context) =>

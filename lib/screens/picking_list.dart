@@ -23,7 +23,9 @@ class _PickingListScreenState extends State<PickingListScreen> {
   @override
   void initState() {
     super.initState();
-    _loadItems();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadItems(); // เรียกหลัง build เสร็จ
+    });
   }
 
   Future<void> _loadItems() async {
@@ -226,12 +228,12 @@ class _PickingListScreenState extends State<PickingListScreen> {
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.1),
                                     blurRadius: 6,
-                                    offset: const Offset(0, 3), // เงาล่าง
+                                    offset: const Offset(0, 3),
                                   ),
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.06),
                                     blurRadius: 6,
-                                    offset: const Offset(0, -2), // เงาบน
+                                    offset: const Offset(0, -2),
                                   ),
                                 ],
                               ),
@@ -242,26 +244,74 @@ class _PickingListScreenState extends State<PickingListScreen> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(6),
-                                        child: Image.network(
-                                          imagePath,
-                                          height: 90,
-                                          width: 90,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (
-                                            context,
-                                            error,
-                                            stack,
-                                          ) {
-                                            return Image.asset(
-                                              'assets/images/no_image.png',
+                                      Column(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            child: Image.network(
+                                              imagePath,
                                               height: 90,
                                               width: 90,
                                               fit: BoxFit.cover,
-                                            );
-                                          },
-                                        ),
+                                              errorBuilder: (
+                                                context,
+                                                error,
+                                                stack,
+                                              ) {
+                                                return Image.asset(
+                                                  'assets/images/no_image.png',
+                                                  height: 90,
+                                                  width: 90,
+                                                  fit: BoxFit.cover,
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+
+                                          Container(
+                                            width:
+                                                90, // 👈 กำหนดให้ไม่เกิน 90px ของรูป
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 2,
+                                              horizontal: 6,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                              border: Border.all(
+                                                color: Colors.grey.shade300,
+                                              ),
+                                            ),
+                                            child: Column(
+                                              children: [
+                                                const Text(
+                                                  'Stock',
+                                                  style: TextStyle(
+                                                    fontSize: 9,
+                                                    color: Colors.black87,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                                const SizedBox(height: 1),
+                                                Text(
+                                                  '${item['F_StockBalance'] ?? '-'}',
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Color(
+                                                      0xFF006400,
+                                                    ), // เขียวเข้ม
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                       const SizedBox(width: 6),
                                       Expanded(
@@ -311,75 +361,86 @@ class _PickingListScreenState extends State<PickingListScreen> {
                                                 ),
                                               ],
                                             ),
+                                            const SizedBox(height: 6),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    const Text(
+                                                      'สถานะ : ',
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      isComplete
+                                                          ? '✅ ตรวจครบแล้ว'
+                                                          : '⌛ รอสแกน',
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        color:
+                                                            isComplete
+                                                                ? Colors.green
+                                                                : Colors.orange,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                SizedBox(
+                                                  width: 90,
+                                                  height: 30,
+                                                  child: TextButton(
+                                                    onPressed:
+                                                        () =>
+                                                            _navigateToScanScreen(
+                                                              item,
+                                                            ),
+                                                    style: TextButton.styleFrom(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8,
+                                                          ),
+                                                      backgroundColor:
+                                                          isComplete
+                                                              ? Colors.white
+                                                              : (isSelected
+                                                                  ? Colors
+                                                                      .green[100]
+                                                                  : Colors
+                                                                      .white),
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              6,
+                                                            ),
+                                                        side: const BorderSide(
+                                                          color: Colors.black12,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    child: FittedBox(
+                                                      fit: BoxFit.scaleDown,
+                                                      child: Text(
+                                                        isComplete
+                                                            ? '✅ สแกนครบแล้ว'
+                                                            : (isSelected
+                                                                ? '✅ กำลังสแกน'
+                                                                : 'เลือกสแกน'),
+                                                        style: const TextStyle(
+                                                          fontSize: 10,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          const SizedBox(width: 4),
-                                          const Text(
-                                            'สถานะ : ',
-                                            style: TextStyle(fontSize: 11),
-                                          ),
-                                          Text(
-                                            isComplete
-                                                ? '✅ ตรวจครบแล้ว'
-                                                : '⌛ รอสแกน',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color:
-                                                  isComplete
-                                                      ? Colors.green
-                                                      : Colors.orange,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(
-                                        width: 80, // ✅ ความกว้างคงที่
-                                        height: 32,
-                                        child: TextButton(
-                                          onPressed:
-                                              () => _navigateToScanScreen(item),
-                                          style: TextButton.styleFrom(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                            ),
-                                            backgroundColor:
-                                                isComplete
-                                                    ? Colors.white
-                                                    : (isSelected
-                                                        ? Colors.green[100]
-                                                        : Colors.white),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                              side: const BorderSide(
-                                                color: Colors.black12,
-                                              ),
-                                            ),
-                                          ),
-                                          child: FittedBox(
-                                            fit: BoxFit.scaleDown,
-                                            child: Text(
-                                              isComplete
-                                                  ? '✅ สแกนครบแล้ว'
-                                                  : (isSelected
-                                                      ? '✅ กำลังสแกน'
-                                                      : 'เลือกสแกน'),
-                                              style: const TextStyle(
-                                                fontSize: 10,
-                                              ),
-                                            ),
-                                          ),
                                         ),
                                       ),
                                     ],

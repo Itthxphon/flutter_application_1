@@ -66,7 +66,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white, // สีพื้นหลังแบบในภาพ
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -180,17 +180,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     }
   }
 
-  Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    if (!mounted) return;
-
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
-  }
-
   void _confirmLogout() {
     showDialog(
       context: context,
@@ -200,17 +189,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             content: const Text('คุณต้องการออกจากระบบหรือไม่?'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context), // ปิดกล่อง
+                onPressed: () => Navigator.pop(context),
                 child: const Text('ยกเลิก'),
               ),
               ElevatedButton(
                 onPressed: () async {
                   final prefs = await SharedPreferences.getInstance();
                   await prefs.clear();
-
                   if (!mounted) return;
-
-                  Navigator.pop(context); // ปิด dialog
+                  Navigator.pop(context);
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (_) => const LoginScreen()),
                     (route) => false,
@@ -250,16 +237,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             leading: const Icon(Icons.list_alt, color: Colors.black),
             title: const Text(
               'เช็ค Serial Number',
-              style: TextStyle(color: Colors.black), // ✅ บังคับสีดำ
+              style: TextStyle(color: Colors.black),
             ),
             selected: _selectedIndex == 0,
-            selectedTileColor: Colors.transparent, // ✅ ไม่ต้องมีพื้นหลังม่วง
             onTap: () {
               setState(() => _selectedIndex = 0);
               Navigator.pop(context);
             },
           ),
-
           ListTile(
             leading: const Icon(Icons.edit_location_alt),
             title: const Text('เปลี่ยนสถานที่'),
@@ -282,20 +267,25 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool showAppBarInScaffold =
-        _selectedIndex == 0; // ⬅ หน้าแรกเท่านั้นที่ใช้ AppBar จาก Scaffold
+    final bool showAppBarInScaffold = _selectedIndex == 0;
 
     return Scaffold(
-      backgroundColor: Color(0xFFFFFFFF),
-
+      backgroundColor: Colors.white,
       appBar:
           showAppBarInScaffold
               ? AppBar(
                 backgroundColor: const Color(0xFF1B1F2B),
                 foregroundColor: Colors.white,
-                centerTitle: false, // ⬅️ ไม่จัดกลาง เพื่อควบคุมเอง
+                centerTitle: false,
+                leading: Builder(
+                  builder:
+                      (context) => IconButton(
+                        icon: const Icon(Icons.menu),
+                        onPressed: () => Scaffold.of(context).openDrawer(),
+                      ),
+                ),
                 title: Padding(
-                  padding: const EdgeInsets.only(left: 8), // ⬅️ ขยับ title ซ้าย
+                  padding: const EdgeInsets.only(left: 8),
                   child: Text(
                     _titles[_selectedIndex],
                     style: const TextStyle(
@@ -351,7 +341,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 ],
               )
               : null,
-
       drawer: _buildDrawer(),
       body: _screens[_selectedIndex],
     );

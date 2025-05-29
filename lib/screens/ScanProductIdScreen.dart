@@ -5,9 +5,12 @@ import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
 import '../services/api_service.dart';
 import 'package:intl/intl.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'searchproduct.dart';
 
 class ScanProductIdScreen extends StatefulWidget {
-  const ScanProductIdScreen({Key? key}) : super(key: key);
+  final Map<String, dynamic>? initialProduct;
+
+  const ScanProductIdScreen({Key? key, this.initialProduct}) : super(key: key);
 
   @override
   State<ScanProductIdScreen> createState() => _ScanProductIdScreenState();
@@ -20,12 +23,52 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
   bool _isLoading = false;
   String? _employeeId;
   bool _isInDialogMode = false;
+  bool _hasLoadedFromSearch = false;
+  bool _isManualInput = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasLoadedFromSearch) {
+      _hasLoadedFromSearch = true;
+      _loadScannedProductFromSearch(); // ✅ โหลดทุกครั้งเมื่อกลับมาหน้านี้
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _loadSavedScans();
+
     _loadEmployeeId();
+
+    // ✅ โหลดจาก shared preferences หลัง build เสร็จ
+    Future.delayed(Duration.zero, () {
+      _loadScannedProductFromSearch();
+    });
+
+    if (widget.initialProduct != null) {
+      _resultList.add(widget.initialProduct!);
+    }
+  }
+
+  Future<void> _loadScannedProductFromSearch() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('scannedProducts');
+
+    if (saved != null) {
+      final decoded = jsonDecode(saved) as List<dynamic>;
+      if (decoded.isNotEmpty) {
+        final selected = decoded.first as Map<String, dynamic>;
+
+        setState(() {
+          _resultList
+            ..clear()
+            ..add(selected);
+        });
+
+        //อย่าลบ prefs ที่นี่
+      }
+    }
   }
 
   Future<void> _loadEmployeeId() async {
@@ -46,6 +89,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
   }
 
   Future<void> _scanProduct([String? manualId]) async {
+    setState(() => _isManualInput = false);
     if (_isInDialogMode) return;
 
     final keyword = manualId?.trim() ?? _controller.text.trim();
@@ -53,6 +97,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
 
     if (!mounted) return;
     setState(() => _isLoading = true);
+    _isManualInput = false;
 
     try {
       final data = await ApiService.scanProductId(keyword);
@@ -68,22 +113,22 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
             ..add(casted.first);
         });
 
+        // ✅ ลบ SharedPreferences ตอนสแกนใหม่
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('scannedProducts');
+
         await _saveScannedList();
       } else {
-        if (mounted) {
-          _showAlertDialog(
-            title: '⚠️ ไม่พบสินค้า',
-            message: 'ไม่พบข้อมูลสินค้าสำหรับ: $keyword',
-          );
-        }
-      }
-    } catch (_) {
-      if (mounted) {
         _showAlertDialog(
-          title: '⚠️ เกิดข้อผิดพลาด',
-          message: 'ไม่พบข้อมูลสินค้า',
+          title: '⚠️ ไม่พบสินค้า',
+          message: 'ไม่พบข้อมูลสินค้าสำหรับ: $keyword',
         );
       }
+    } catch (_) {
+      _showAlertDialog(
+        title: '⚠️ เกิดข้อผิดพลาด',
+        message: 'ไม่พบข้อมูลสินค้า',
+      );
     } finally {
       if (!mounted) return;
       setState(() {
@@ -107,9 +152,11 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
   }) {
     bool isDialogOpen = true;
 
+    if (!mounted) return;
+
     showDialog(
       context: context,
-      barrierDismissible: true, // ✅ แตะนอกกล่องเพื่อปิด
+      barrierDismissible: true,
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFFF8F0FF),
@@ -127,7 +174,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                if (isDialogOpen && Navigator.of(context).canPop()) {
+                if (isDialogOpen && mounted && Navigator.of(context).canPop()) {
                   isDialogOpen = false;
                   Navigator.of(context).pop();
                 }
@@ -141,8 +188,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
 
     if (autoClose) {
       Future.delayed(duration, () {
-        if (isDialogOpen && Navigator.of(context).canPop()) {
-          isDialogOpen = false;
+        if (mounted && Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
         }
       });
@@ -160,9 +206,12 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
       builder: (context) {
         return BarcodeKeyboardListener(
           onBarcodeScanned: (barcode) {
+            _locationController.text =
+                barcode; // ✅ อัปเดตช่อง TextField ด้วยค่าที่สแกน
             Navigator.pop(context);
             _confirmLocation(productId, barcode);
           },
+
           bufferDuration: const Duration(milliseconds: 200),
           child: AlertDialog(
             backgroundColor: Colors.white,
@@ -241,7 +290,10 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
 
   Future<void> _confirmLocation(String productId, String location) async {
     final newLocation = location.trim();
+
     if (newLocation.isEmpty) return;
+
+    print('🔍 newLocation = $newLocation'); // ✅ เพิ่มบรรทัดนี้เพื่อ debug
 
     try {
       final result = await ApiService.changeLocation(
@@ -271,8 +323,9 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
     } catch (_) {
       if (mounted) {
         _showAlertDialog(
-          title: '⚠️แจ้งเตือน',
-          message: 'เกิดข้อผิดพลาดในการเปลี่ยนสถานที่',
+          title: '❌ ผิดพลาด',
+          message: 'ไม่พบสถานที่ในระบบ',
+          autoClose: true,
         );
       }
     }
@@ -470,7 +523,15 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
   Widget build(BuildContext context) {
     return BarcodeKeyboardListener(
       bufferDuration: const Duration(milliseconds: 200),
-      onBarcodeScanned: _scanProduct,
+      onBarcodeScanned: (barcode) {
+        if (barcode.trim().isEmpty) return;
+
+        FocusScope.of(context).unfocus();
+        setState(() => _isManualInput = false);
+
+        _controller.text = barcode; // ✅ แสดงค่าในช่อง
+        _scanProduct(barcode); // ✅ เรียกยิงค้นหา
+      },
       child: Builder(
         builder:
             (context) => Scaffold(
@@ -487,6 +548,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                   'เปลี่ยนสถานที่',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
+
                 actions: [
                   IconButton(
                     icon: const Icon(Icons.refresh),
@@ -510,25 +572,46 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                         Expanded(
                           child: SizedBox(
                             height: 40,
-                            child: TextField(
-                              controller: _controller,
-                              focusNode: _focusNode,
-                              onSubmitted: (_) => _scanProduct(),
-                              style: const TextStyle(fontSize: 13),
-                              decoration: InputDecoration(
-                                hintText: 'ค้นหาชื่อสินค้า หรือสแกน ProductID',
-                                hintStyle: const TextStyle(fontSize: 13),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 0,
-                                  horizontal: 10,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() => _isManualInput = true);
+                                _focusNode.requestFocus();
+                              },
+                              child: AbsorbPointer(
+                                absorbing: !_isManualInput,
+                                child: TextField(
+                                  controller: _controller,
+                                  focusNode: _focusNode,
+                                  readOnly: true, // ✅ ป้องกันคีย์บอร์ดจากระบบ
+                                  onTap: () {
+                                    if (_isManualInput) {
+                                      _focusNode
+                                          .requestFocus(); // ✅ เฉพาะตอนแตะช่อง
+                                    }
+                                  },
+                                  onSubmitted: (_) {
+                                    setState(() => _isManualInput = false);
+                                    _scanProduct();
+                                  },
+                                  style: const TextStyle(fontSize: 13),
+                                  decoration: InputDecoration(
+                                    hintText:
+                                        'ค้นหาชื่อสินค้า หรือสแกน ProductID',
+                                    hintStyle: const TextStyle(fontSize: 13),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 0,
+                                      horizontal: 10,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
+
                         const SizedBox(width: 6),
                         Container(
                           height: 40,
@@ -548,8 +631,38 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                             tooltip: 'สแกน / ค้นหา',
                           ),
                         ),
+                        const SizedBox(width: 6),
+                        Container(
+                          height: 40,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1B1F2B),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.search,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                            padding: EdgeInsets.zero,
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => const SearchProductScreen(),
+                                ),
+                              );
+                              await _loadScannedProductFromSearch(); // โหลดสินค้าที่เลือกกลับมาแสดง
+                            },
+
+                            tooltip: 'ค้นหา',
+                          ),
+                        ),
                       ],
                     ),
+
                     const SizedBox(height: 10),
 
                     if (_isLoading) const CircularProgressIndicator(),

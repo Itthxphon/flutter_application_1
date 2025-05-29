@@ -16,6 +16,11 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
+  @override
+  void initState() {
+    super.initState();
+  }
+
   Future<void> _login() async {
     final userID = _userController.text.trim();
     final password = _passController.text;
@@ -220,17 +225,20 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child:
-                              _isLoading
-                                  ? const CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
-                                    ),
-                                  )
-                                  : const Text(
-                                    'เข้าสู่ระบบ',
-                                    style: TextStyle(fontSize: 14),
-                                  ),
+                          child: const Text(
+                            'เข้าสู่ระบบ',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          // _isLoading
+                          //     ? const CircularProgressIndicator(
+                          //       valueColor: AlwaysStoppedAnimation<Color>(
+                          //         Colors.white,
+                          //       ),
+                          //     )
+                          //     : const Text(
+                          //       'เข้าสู่ระบบ',
+                          //       style: TextStyle(fontSize: 14),
+                          //     ),
                         ),
                       ),
                     ],
