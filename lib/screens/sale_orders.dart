@@ -3,14 +3,8 @@ import '../services/api_service.dart';
 import 'picking_list.dart';
 
 class SaleOrdersScreen extends StatefulWidget {
-  final String? colorFilter;
-  final void Function(int)? onPendingCountChanged;
-
-  const SaleOrdersScreen({
-    super.key,
-    this.colorFilter,
-    this.onPendingCountChanged,
-  });
+  final GlobalKey<ScaffoldState>? scaffoldKey;
+  const SaleOrdersScreen({super.key, this.scaffoldKey});
 
   @override
   State<SaleOrdersScreen> createState() => _SaleOrdersScreenState();
@@ -23,29 +17,18 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
   bool _isLoading = true;
   int pendingCount = 0;
   String? selectedColor;
-  @override
-  void didUpdateWidget(covariant SaleOrdersScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.colorFilter != widget.colorFilter) {
-      selectedColor = widget.colorFilter;
-      _fetchOrders(); // โหลดใหม่เมื่อ filter เปลี่ยน
-    }
-  }
 
   @override
   void initState() {
     super.initState();
-    selectedColor = widget.colorFilter;
     _fetchOrders();
   }
 
   Future<void> _fetchOrders() async {
     setState(() => _isLoading = true);
-
     try {
       final data = await ApiService.getOrders(color: selectedColor);
       final pending = data.where((o) => o['F_CheckSNStatus'] != 1).length;
-
       data.sort((a, b) {
         final dateA =
             DateTime.tryParse(a['F_SendDate'] ?? '') ?? DateTime(2100);
@@ -65,8 +48,6 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
         _filterOrdersByColor();
         _isLoading = false;
       });
-
-      widget.onPendingCountChanged?.call(pending);
     } catch (e) {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(
@@ -81,13 +62,14 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
   }
 
   void _filterOrdersByColor() {
-    final filter = selectedColor;
     setState(() {
       if (searchText.isEmpty) {
         filteredOrders =
-            filter == null
+            selectedColor == null
                 ? allOrders
-                : allOrders.where((order) => order['color'] == filter).toList();
+                : allOrders
+                    .where((order) => order['color'] == selectedColor)
+                    .toList();
       } else {
         filteredOrders =
             allOrders.where((order) {
@@ -95,7 +77,8 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                   (order['F_SaleOrderNo'] ?? '').toString().toLowerCase();
               final customer =
                   (order['F_CustomerName'] ?? '').toString().toLowerCase();
-              final colorMatch = filter == null || order['color'] == filter;
+              final colorMatch =
+                  selectedColor == null || order['color'] == selectedColor;
               final textMatch =
                   orderNo.contains(searchText.toLowerCase()) ||
                   customer.contains(searchText.toLowerCase());
@@ -115,6 +98,19 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
   }
 
   void _showColorFilterMenu() {
+    final Map<String?, String> colors = {
+      null: 'ทั้งหมด',
+      'red': 'แดง',
+      'yellow': 'เหลือง',
+      'pink': 'ชมพู',
+      'blue': 'น้ำเงิน',
+      'purple': 'ม่วง',
+      'lightsky': 'ฟ้า',
+      'brown': 'น้ำตาล',
+      'lightgreen': 'เขียวอ่อน',
+      'green': 'เขียว',
+    };
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -122,70 +118,122 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
       ),
       builder: (context) {
         return Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
           child: Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [
-              _buildColorChip(null, 'ทั้งหมด'),
-              _buildColorChip('red', 'แดง'),
-              _buildColorChip('yellow', 'เหลือง'),
-              _buildColorChip('pink', 'ชมพู'),
-              _buildColorChip('blue', 'น้ำเงิน'),
-              _buildColorChip('purple', 'ม่วง'),
-              _buildColorChip('lightsky', 'ฟ้า'),
-              _buildColorChip('brown', 'น้ำตาล'),
-              _buildColorChip('lightgreen', 'เขียวอ่อน'),
-              _buildColorChip('green', 'เขียว'),
-            ],
+            children:
+                colors.entries.map((entry) {
+                  final isSelected = selectedColor == entry.key;
+                  final colorDot = _mapColor(entry.key);
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                      setState(() {
+                        selectedColor = entry.key;
+                      });
+                      _fetchOrders();
+                    },
+                    child: Container(
+                      width: 104,
+                      height: 42,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color:
+                              isSelected
+                                  ? Colors.lightBlue
+                                  : Colors.grey.shade300,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          if (entry.key != null)
+                            Container(
+                              width: 12,
+                              height: 12,
+                              margin: const EdgeInsets.only(right: 6),
+                              decoration: BoxDecoration(
+                                color: colorDot,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          Flexible(
+                            child: Text(
+                              entry.value,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
           ),
         );
       },
     );
   }
 
-  Widget _buildColorChip(String? colorCode, String label) {
-    final isSelected = selectedColor == colorCode;
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.pop(context);
-        setState(() {
-          selectedColor = colorCode;
-        });
-        _fetchOrders();
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.blue.shade50 : Colors.white,
-          border: Border.all(color: Colors.grey.shade400),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (colorCode != null)
-              Container(
-                width: 10,
-                height: 10,
-                margin: const EdgeInsets.only(right: 6),
-                decoration: BoxDecoration(
-                  color: _mapColor(colorCode),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            Text(label, style: const TextStyle(fontSize: 13)),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFFFFFF),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1B1F2B),
+        foregroundColor: Colors.white,
+        title: const Text('เช็ค Serial Number'),
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () => widget.scaffoldKey?.currentState?.openDrawer(),
+        ),
+        actions: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications, size: 28),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('คุณมีงานค้างที่ยังไม่ตรวจ SN'),
+                    ),
+                  );
+                },
+              ),
+              if (pendingCount > 0)
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    alignment: Alignment.center,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      pendingCount > 99 ? '99+' : '$pendingCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          IconButton(
+            icon: const Icon(Icons.tune, size: 28),
+            onPressed: _showColorFilterMenu,
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Padding(
@@ -236,26 +284,24 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(10),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.08),
-                                    blurRadius: 6,
-                                    spreadRadius: 1,
-                                    offset: const Offset(0, 3), // เงาด้านล่าง
-                                  ),
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.04),
-                                    blurRadius: 6,
-                                    spreadRadius: 1,
-                                    offset: const Offset(0, -2), // เงาด้านบน
-                                  ),
-                                ],
                                 border: Border(
                                   left: BorderSide(
                                     width: 5,
                                     color: _mapColor(color),
                                   ),
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.08),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.04),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, -2),
+                                  ),
+                                ],
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -311,6 +357,7 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                                           : '⏳ รอตรวจสอบ SN',
                                       style: TextStyle(
                                         fontSize: 12,
+                                        fontWeight: FontWeight.bold,
                                         color:
                                             isChecked
                                                 ? Colors.green
@@ -320,7 +367,6 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                                                   78,
                                                   66,
                                                 ),
-                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ),
