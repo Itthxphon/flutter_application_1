@@ -9,8 +9,10 @@ import 'searchproduct.dart';
 
 class ScanProductIdScreen extends StatefulWidget {
   final Map<String, dynamic>? initialProduct;
+  final GlobalKey<ScaffoldState>? scaffoldKey; // ✅ เพิ่มตรงนี้
 
-  const ScanProductIdScreen({Key? key, this.initialProduct}) : super(key: key);
+  const ScanProductIdScreen({Key? key, this.initialProduct, this.scaffoldKey})
+    : super(key: key);
 
   @override
   State<ScanProductIdScreen> createState() => _ScanProductIdScreenState();
@@ -542,11 +544,18 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                 centerTitle: true,
                 leading: IconButton(
                   icon: const Icon(Icons.menu),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
+                  onPressed:
+                      () =>
+                          widget.scaffoldKey?.currentState
+                              ?.openDrawer(), // ✅ ใช้ key จาก MainNavigation
                 ),
+
                 title: const Text(
                   'เปลี่ยนสถานที่',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.normal,
+                    color: Colors.white,
+                  ),
                 ),
 
                 actions: [

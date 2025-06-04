@@ -377,7 +377,7 @@ class _SearchProductScreenState extends State<SearchProductScreen> {
                                                   style: const TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.bold,
-                                                    color: Color(0xFF1B1F2B),
+                                                    color: Color(0xFF00008B),
                                                   ),
                                                   maxLines: 1,
                                                   minFontSize: 8,
