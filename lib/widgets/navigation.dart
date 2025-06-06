@@ -4,6 +4,7 @@ import '../screens/sale_orders.dart';
 import '../screens/login_screen.dart';
 import '../screens/ScanProductIdScreen.dart';
 import '../screens/ScanLocation.dart';
+import '../screens/ProductionStatus.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
@@ -21,6 +22,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     'เช็ค Serial Number',
     'เปลี่ยนสถานที่',
     'ตรวจ Location',
+    'สถานะการผลิต',
   ];
 
   late final List<Widget> _screens;
@@ -33,12 +35,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       SaleOrdersScreen(scaffoldKey: _scaffoldKey),
       ScanProductIdScreen(scaffoldKey: _scaffoldKey),
       ScanLocationScreen(scaffoldKey: _scaffoldKey),
+      ProductionStatusScreen(scaffoldKey: _scaffoldKey),
     ];
   }
 
   Future<void> _loadEmployeeInfo() async {
     final prefs = await SharedPreferences.getInstance();
     final name = prefs.getString('employeeName');
+    if (!mounted) return;
     setState(() {
       _employeeName = name ?? 'ไม่พบชื่อพนักงาน';
     });
@@ -102,8 +106,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             title: const Text('เช็ค Serial Number'),
             selected: _selectedIndex == 0,
             onTap: () {
-              setState(() => _selectedIndex = 0);
               Navigator.pop(context);
+              Future.delayed(const Duration(milliseconds: 300), () {
+                if (mounted) setState(() => _selectedIndex = 0);
+              });
             },
           ),
           ListTile(
@@ -111,8 +117,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             title: const Text('เปลี่ยนสถานที่'),
             selected: _selectedIndex == 1,
             onTap: () {
-              setState(() => _selectedIndex = 1);
               Navigator.pop(context);
+              Future.delayed(const Duration(milliseconds: 300), () {
+                if (mounted) setState(() => _selectedIndex = 1);
+              });
             },
           ),
           ListTile(
@@ -120,10 +128,24 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             title: const Text('ตรวจ Location'),
             selected: _selectedIndex == 2,
             onTap: () {
-              setState(() => _selectedIndex = 2);
               Navigator.pop(context);
+              Future.delayed(const Duration(milliseconds: 300), () {
+                if (mounted) setState(() => _selectedIndex = 2);
+              });
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.factory_outlined),
+            title: const Text('สถานะการผลิต'),
+            selected: _selectedIndex == 3,
+            onTap: () {
+              Navigator.pop(context);
+              Future.delayed(const Duration(milliseconds: 300), () {
+                if (mounted) setState(() => _selectedIndex = 3);
+              });
+            },
+          ),
+
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout),
