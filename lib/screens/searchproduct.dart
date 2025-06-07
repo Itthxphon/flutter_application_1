@@ -175,6 +175,7 @@ class _SearchProductScreenState extends State<SearchProductScreen> {
       bufferDuration: const Duration(milliseconds: 200),
       onBarcodeScanned: (barcode) => _onSearchChanged(barcode),
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: const Color(0xFF1B1F2B),
           foregroundColor: Colors.white,
@@ -241,7 +242,8 @@ class _SearchProductScreenState extends State<SearchProductScreen> {
               else
                 Expanded(
                   child: ListView.builder(
-                    itemCount: _results.take(100).length, // ✅ จำกัดผลลัพธ์
+                    itemCount:
+                        _results.take(100).length, //จำกัดที่แสดงไว้ได้แค่100
                     itemBuilder: (_, index) {
                       final item = _results.take(100).toList()[index];
                       final imagePath = item['imagePath']?.toString() ?? '';

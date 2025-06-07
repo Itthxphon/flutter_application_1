@@ -182,10 +182,21 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFF1B1F2B),
         foregroundColor: Colors.white,
-        title: const Text('เช็ค Serial Number'),
+        centerTitle: true,
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            'เช็ค Serial Number',
+            style: TextStyle(
+              fontSize: 30, // 🔽 ขนาดพอดีกับ AppBar
+              fontWeight: FontWeight.normal, // ✅ ตัวบาง
+            ),
+          ),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.menu),
           onPressed: () => widget.scaffoldKey?.currentState?.openDrawer(),
@@ -234,151 +245,154 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 2),
-            child: TextField(
-              onChanged: _filterOrders,
-              decoration: InputDecoration(
-                hintText: 'ค้นหารหัสใบสั่งขาย หรือชื่อของลูกค้า',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+      body: Container(
+        color: Colors.white, //พื้นหลัง
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 2),
+              child: TextField(
+                onChanged: _filterOrders,
+                decoration: InputDecoration(
+                  hintText: 'ค้นหารหัสใบสั่งขาย หรือชื่อของลูกค้า',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 2),
-          Expanded(
-            child:
-                _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : filteredOrders.isEmpty
-                    ? const Center(child: Text('ไม่พบข้อมูลคำสั่งขาย'))
-                    : RefreshIndicator(
-                      onRefresh: _fetchOrders,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(12),
-                        itemCount: filteredOrders.length,
-                        itemBuilder: (context, index) {
-                          final order = filteredOrders[index];
-                          final orderNo = order['F_SaleOrderNo'] ?? '-';
-                          final customer = order['F_CustomerName'] ?? '-';
-                          final sendDate =
-                              (order['F_SendDate'] ?? '')
-                                  .toString()
-                                  .split('T')
-                                  .first;
-                          final checkStatus = order['F_CheckSNStatus'];
-                          final isChecked =
-                              checkStatus == 1 || checkStatus == '1';
-                          final color = order['color'] ?? '';
-                          final itemCount = order['itemCount'] ?? 0;
+            const SizedBox(height: 2),
+            Expanded(
+              child:
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : filteredOrders.isEmpty
+                      ? const Center(child: Text('ไม่พบข้อมูลคำสั่งขาย'))
+                      : RefreshIndicator(
+                        onRefresh: _fetchOrders,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(12),
+                          itemCount: filteredOrders.length,
+                          itemBuilder: (context, index) {
+                            final order = filteredOrders[index];
+                            final orderNo = order['F_SaleOrderNo'] ?? '-';
+                            final customer = order['F_CustomerName'] ?? '-';
+                            final sendDate =
+                                (order['F_SendDate'] ?? '')
+                                    .toString()
+                                    .split('T')
+                                    .first;
+                            final checkStatus = order['F_CheckSNStatus'];
+                            final isChecked =
+                                checkStatus == 1 || checkStatus == '1';
+                            final color = order['color'] ?? '';
+                            final itemCount = order['itemCount'] ?? 0;
 
-                          return GestureDetector(
-                            onTap: () => _navigateToPickingList(orderNo),
-                            child: Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border(
-                                  left: BorderSide(
-                                    width: 5,
-                                    color: _mapColor(color),
+                            return GestureDetector(
+                              onTap: () => _navigateToPickingList(orderNo),
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border(
+                                    left: BorderSide(
+                                      width: 5,
+                                      color: _mapColor(color),
+                                    ),
                                   ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.08),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.04),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, -2),
+                                    ),
+                                  ],
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.08),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.04),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, -2),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        '$orderNo',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          '$orderNo',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
                                         ),
-                                      ),
-                                      Text(
-                                        _formatDate(sendDate),
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                          color: _mapColor(color),
+                                        Text(
+                                          _formatDate(sendDate),
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                            color: _mapColor(color),
+                                          ),
                                         ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'ชื่อลูกค้า : $customer',
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                    Text(
+                                      'จำนวนสินค้า : $itemCount',
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
                                       ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'ชื่อลูกค้า : $customer',
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
-                                  Text(
-                                    'จำนวนสินค้า : $itemCount',
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          isChecked
-                                              ? Colors.green.withOpacity(0.1)
-                                              : const Color(
-                                                0xFFFFC1C1,
-                                              ).withOpacity(0.3),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Text(
-                                      isChecked
-                                          ? '✅ ตรวจสอบ SN ครบแล้ว'
-                                          : '⏳ รอตรวจสอบ SN',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
+                                      decoration: BoxDecoration(
                                         color:
                                             isChecked
-                                                ? Colors.green
-                                                : const Color.fromARGB(
-                                                  255,
-                                                  243,
-                                                  78,
-                                                  66,
-                                                ),
+                                                ? Colors.green.withOpacity(0.1)
+                                                : const Color(
+                                                  0xFFFFC1C1,
+                                                ).withOpacity(0.3),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Text(
+                                        isChecked
+                                            ? '✅ ตรวจสอบ SN ครบแล้ว'
+                                            : '⏳ รอตรวจสอบ SN',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color:
+                                              isChecked
+                                                  ? Colors.green
+                                                  : const Color.fromARGB(
+                                                    255,
+                                                    243,
+                                                    78,
+                                                    66,
+                                                  ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       ),
-                    ),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

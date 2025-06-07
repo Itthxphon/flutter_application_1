@@ -39,6 +39,7 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
     FocusScope.of(context).unfocus();
     if (!mounted) return;
 
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _products.clear();
@@ -56,6 +57,7 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
         );
       }
 
+      if (!mounted) return; // ✅ เพิ่มเช็กอีกที
       setState(() => _products = result);
     } catch (_) {
       if (!mounted) return;
@@ -65,7 +67,7 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
         autoClose: true,
       );
     } finally {
-      if (!mounted) return;
+      if (!mounted) return; // ✅ เพิ่มตรงนี้อีก
       setState(() {
         _isLoading = false;
         _controller.clear();
@@ -88,7 +90,7 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
       barrierDismissible: true,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFFF8F0FF),
+          backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -328,7 +330,7 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
         _scanLocation(barcode);
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFFDFBFF),
+        backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: const Color(0xFF1B1F2B),
           foregroundColor: Colors.white,
@@ -361,6 +363,7 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
                           controller: _controller,
                           focusNode: _focusNode,
                           readOnly: true,
+                          enableInteractiveSelection: false,
                           decoration: InputDecoration(
                             hintText: 'ยิงบาร์โค้ด Location',
                             contentPadding: const EdgeInsets.symmetric(

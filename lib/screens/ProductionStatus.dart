@@ -94,6 +94,32 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
     }
   }
 
+  Color _statusColor(String? colorName) {
+    switch (colorName?.toLowerCase()) {
+      case 'red':
+        return Colors.red;
+      case 'green':
+        return Colors.green;
+      case 'yellow':
+        return Colors.amber;
+      case 'blue':
+        return Colors.blue;
+      case 'purple':
+        return Colors.purple;
+      case 'black':
+        return Colors.black;
+      case 'grey':
+      case 'gray':
+        return Colors.grey;
+      case 'orange':
+        return Colors.orange;
+      case 'pink':
+        return Colors.pink;
+      default:
+        return const Color(0xFF00008B); // fallback สีเดิม
+    }
+  }
+
   Widget _buildCard(Map<String, dynamic> item) {
     final formatter = DateFormat('dd/MM/yyyy');
     final imagePath = item['imagePath'] ?? '';
@@ -101,7 +127,8 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
         item['F_SendDate'] != null
             ? formatter.format(DateTime.parse(item['F_SendDate']))
             : '-';
-    final color = _mapColor(item['color']);
+    final color = _mapColor(item['Color']?.toString().toLowerCase() ?? '');
+    final stationColor = _statusColor(item['statusColor']);
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -117,8 +144,6 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ หัวข้อใบกำกับการผลิต + วันที่ส่ง
-          // ✅ บรรทัดแรก: หัวข้อ + วันที่
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -132,7 +157,6 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
               ),
             ],
           ),
-          // ✅ บรรทัดที่สอง: รหัสใบกำกับ
           Text(
             item['F_ProcessOrderId'] ?? '-',
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
@@ -140,22 +164,17 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
 
           const SizedBox(height: 2),
 
-          // ✅ ชื่อสินค้า
           Text(
             item['F_ProductName'] ?? '-',
-            style: const TextStyle(
-              fontSize: 13, // เปลี่ยนจาก 15 → 13 ให้เท่ากับประเภทพิมพ์
-            ),
+            style: const TextStyle(fontSize: 13),
           ),
           const SizedBox(height: 1),
 
-          // ✅ ประเภทพิมพ์
           Text(
             'ประเภทพิมพ์ : ${item['F_Product_PrintTypeName'] ?? '-'}',
             style: const TextStyle(fontSize: 13),
           ),
 
-          // ✅ เครื่อง + สถานี (จัดให้อยู่บรรทัดเดียวกัน และห่างกันพอดี)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -169,13 +188,13 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEAF2FF),
+                  color: stationColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
                   item['F_StationName'] ?? '-',
-                  style: const TextStyle(
-                    color: Color(0xFF00008B),
+                  style: TextStyle(
+                    color: stationColor,
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                   ),
@@ -202,7 +221,7 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
             borderRadius: BorderRadius.circular(10),
             child: SizedBox(
               width: double.infinity,
-              height: 220, // 🔼 เพิ่มความสูงให้พอดีกับภาพแนวตั้ง
+              height: 250,
               child:
                   (imagePath.isNotEmpty && imagePath.startsWith('http'))
                       ? CachedNetworkImage(
@@ -255,12 +274,12 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFF1B1F2B),
         foregroundColor: Colors.white,
         centerTitle: true,
         title: const Text('สถานะการผลิต'),
-
         leading: IconButton(
           icon: const Icon(Icons.menu),
           onPressed: () => widget.scaffoldKey?.currentState?.openDrawer(),
@@ -268,7 +287,15 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _loadAllOrders,
+            tooltip: 'ล้างข้อมูล',
+            onPressed: () {
+              FocusScope.of(context).unfocus();
+              _barcodeController.clear();
+              setState(() {
+                _filteredData.clear();
+                _isLoading = false;
+              });
+            },
           ),
         ],
       ),
@@ -281,7 +308,8 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
             _barcodeFocusNode.unfocus();
           }
         },
-        child: Padding(
+        child: Container(
+          color: Colors.white,
           padding: const EdgeInsets.all(12),
           child: Column(
             children: [
@@ -306,11 +334,17 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10,
                           ),
-                          filled: true,
-                          fillColor: const Color(0xFFF5F5F5),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
+                            borderSide: const BorderSide(color: Colors.black12),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.black26),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.black87),
                           ),
                         ),
                       ),
