@@ -239,6 +239,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                 TextField(
                   controller: _locationController,
                   focusNode: _focusNode,
+                  readOnly: true,
                   decoration: InputDecoration(
                     hintText: 'กรอก/สแกน สถานที่ใหม่',
                     hintStyle: const TextStyle(fontSize: 13),
@@ -321,6 +322,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
           message: result['message'] ?? 'เปลี่ยนสถานที่สำเร็จ',
           autoClose: true,
         );
+        await _saveScannedList();
       }
     } catch (_) {
       if (mounted) {
@@ -531,7 +533,6 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
         FocusScope.of(context).unfocus();
         setState(() => _isManualInput = false);
 
-        _controller.text = barcode; // ✅ แสดงค่าในช่อง
         _scanProduct(barcode); // ✅ เรียกยิงค้นหา
       },
       child: Builder(

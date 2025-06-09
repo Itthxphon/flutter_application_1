@@ -86,6 +86,25 @@ class _ScanStockScreenState extends State<ScanStockScreen>
     final sn = _snController.text.trim();
     if (sn.isEmpty) return;
 
+    // โหลด SN ทั้งหมดก่อน (อาจ cache ไว้ได้)
+    final allSNs = await ApiService.getAllScannedSNs();
+
+    // เช็กว่า SN นี้มีอยู่ในสินค้าอื่นหรือไม่
+    final duplicateInOtherProduct = allSNs.any(
+      (item) =>
+          item['F_ProductSN'].toString() == sn &&
+          (item['F_SaleOrderNo'] != widget.saleOrderNo ||
+              item['F_ProductId'] != widget.productId ||
+              item['F_Index'].toString() != widget.index.toString()),
+    );
+
+    if (duplicateInOtherProduct) {
+      _snController.clear();
+      _showAlert('⚠️ SN ซ้ำ', 'SN นี้ถูกสแกนแล้วในสินค้ารายการอื่น');
+      return;
+    }
+
+    // เช็กว่า SN นี้มีในสินค้านี้แล้ว
     if (scannedSNs.contains(sn)) {
       _snController.clear();
       _showAlert('⚠️ SN ซ้ำ', 'SN นี้ถูกสแกนไปแล้ว');

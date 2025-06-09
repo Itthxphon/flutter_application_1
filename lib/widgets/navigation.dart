@@ -125,7 +125,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
           ListTile(
             leading: const Icon(Icons.location_searching),
-            title: const Text('ตรวจ Location'),
+            title: const Text('เช็คสินค้าในสถานที่'),
             selected: _selectedIndex == 2,
             onTap: () {
               Navigator.pop(context);
