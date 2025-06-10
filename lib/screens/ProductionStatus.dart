@@ -51,6 +51,59 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
     }
   }
 
+  void _showFullScreenImage(BuildContext context, String imageUrl) {
+    if (imageUrl.isEmpty) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Stack(
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: Container(
+                color: Colors.black.withOpacity(0.95),
+                alignment: Alignment.center,
+                child: InteractiveViewer(
+                  panEnabled: true,
+                  minScale: 1,
+                  maxScale: 4,
+                  child:
+                      (imageUrl.startsWith('http'))
+                          ? CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.contain,
+                            errorWidget:
+                                (context, url, error) => Image.asset(
+                                  'assets/images/pp.png',
+                                  fit: BoxFit.contain,
+                                ),
+                          )
+                          : Image.asset(
+                            'assets/images/pp.png',
+                            fit: BoxFit.contain,
+                          ),
+                ),
+              ),
+            ),
+            // ปุ่มกากบาทขวาบนสุดแบบ LINE
+            Positioned(
+              top: 0,
+              right: 0,
+              child: SafeArea(
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _loadByProcessOrderId(String id) async {
     try {
       setState(() => _isLoading = true);
@@ -202,42 +255,42 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
               ),
             ],
           ),
-          const SizedBox(
-            height: 8,
-          ), // เว้นบรรทัดล่างให้ไม่ติดกับกล่องผลิต/จริง/เสีย
-          // ✅ จำนวน
-          // Row(
-          //   children: [
-          //     _buildQtyBox('ผลิต', item['F_TotalQtyProduction'], Colors.blue),
-          //     const SizedBox(width: 6),
-          //     _buildQtyBox('จริง', item['F_TotalQtyReal'], Colors.green),
-          //     const SizedBox(width: 6),
-          //     _buildQtyBox('เสีย', item['F_TotalQtyScrap'], Colors.red),
-          //   ],
-          // ),
+          const SizedBox(height: 8),
 
-          // const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: SizedBox(
-              width: double.infinity,
-              height: 250,
-              child:
-                  (imagePath.isNotEmpty && imagePath.startsWith('http'))
-                      ? CachedNetworkImage(
-                        imageUrl: imagePath,
-                        fit: BoxFit.cover,
-                        placeholder:
-                            (context, url) => const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                        errorWidget:
-                            (context, url, error) => Image.asset(
-                              'assets/images/pp.png',
-                              fit: BoxFit.cover,
-                            ),
-                      )
-                      : Image.asset('assets/images/pp.png', fit: BoxFit.cover),
+          GestureDetector(
+            onTap: () {
+              _showFullScreenImage(context, imagePath);
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                width: double.infinity,
+                constraints: const BoxConstraints(
+                  minHeight: 150,
+                  maxHeight: 250,
+                ),
+                color: Colors.grey[100],
+                child:
+                    (imagePath.isNotEmpty && imagePath.startsWith('http'))
+                        ? CachedNetworkImage(
+                          imageUrl: imagePath,
+                          fit: BoxFit.contain, // <- ปรับให้ไม่ crop
+                          alignment: Alignment.center,
+                          placeholder:
+                              (context, url) => const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                          errorWidget:
+                              (context, url, error) => Image.asset(
+                                'assets/images/pp.png',
+                                fit: BoxFit.contain,
+                              ),
+                        )
+                        : Image.asset(
+                          'assets/images/pp.png',
+                          fit: BoxFit.contain,
+                        ),
+              ),
             ),
           ),
         ],

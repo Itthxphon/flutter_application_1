@@ -126,6 +126,58 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
     }
   }
 
+  void _showFullScreenImage(BuildContext context, String imageUrl) {
+    if (imageUrl.isEmpty) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Stack(
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: Container(
+                color: Colors.black.withOpacity(0.95),
+                alignment: Alignment.center,
+                child: InteractiveViewer(
+                  panEnabled: true,
+                  minScale: 1,
+                  maxScale: 4,
+                  child:
+                      (imageUrl.startsWith('http'))
+                          ? CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.contain,
+                            errorWidget:
+                                (context, url, error) => Image.asset(
+                                  'assets/images/pp.png',
+                                  fit: BoxFit.contain,
+                                ),
+                          )
+                          : Image.asset(
+                            'assets/images/pp.png',
+                            fit: BoxFit.contain,
+                          ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: SafeArea(
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildProductCard(Map<String, dynamic> item) {
     final imagePath = item['imagePath']?.toString() ?? '';
     final stock = item['F_StockBalance'] ?? 0;
@@ -151,28 +203,31 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            child: SizedBox(
-              width: 90,
-              height: 60,
-              child:
-                  imagePath.isNotEmpty
-                      ? CachedNetworkImage(
-                        imageUrl: imagePath,
-                        fit: BoxFit.cover,
-                        placeholder:
-                            (_, __) => const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                        errorWidget:
-                            (_, __, ___) => Image.asset(
-                              'assets/images/pp.png',
-                              fit: BoxFit.cover,
-                            ),
-                      )
-                      : Image.asset(
-                        'assets/images/products.png',
-                        fit: BoxFit.cover,
-                      ),
+            child: GestureDetector(
+              onTap: () => _showFullScreenImage(context, imagePath),
+              child: SizedBox(
+                width: 90,
+                height: 60,
+                child:
+                    imagePath.isNotEmpty
+                        ? CachedNetworkImage(
+                          imageUrl: imagePath,
+                          fit: BoxFit.cover,
+                          placeholder:
+                              (_, __) => const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                          errorWidget:
+                              (_, __, ___) => Image.asset(
+                                'assets/images/pp.png',
+                                fit: BoxFit.cover,
+                              ),
+                        )
+                        : Image.asset(
+                          'assets/images/products.png',
+                          fit: BoxFit.cover,
+                        ),
+              ),
             ),
           ),
           const SizedBox(width: 10),
