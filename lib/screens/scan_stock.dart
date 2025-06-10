@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import '../services/api_service.dart';
@@ -316,6 +317,15 @@ class _ScanStockScreenState extends State<ScanStockScreen>
       key: const Key('visible-detector-key'),
       onVisibilityChanged: (info) {
         visible = info.visibleFraction > 0;
+
+        if (visible) {
+          // ✅ ปิดแป้นพิมพ์เมื่อกลับมาหน้าเดิม
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted) {
+              FocusScope.of(context).unfocus();
+            }
+          });
+        }
       },
       child: BarcodeKeyboardListener(
         bufferDuration: const Duration(milliseconds: 200),
@@ -323,7 +333,8 @@ class _ScanStockScreenState extends State<ScanStockScreen>
         onBarcodeScanned: (barcode) {
           if (!visible || barcode.isEmpty) return;
 
-          FocusScope.of(context).unfocus(); // ✅ กันไม่ให้คีย์บอร์ดเด้งจาก focus
+          SystemChannels.textInput.invokeMethod('TextInput.hide');
+
           _snController.text = barcode;
           _submitSN();
         },
@@ -473,25 +484,17 @@ class _ScanStockScreenState extends State<ScanStockScreen>
     return Row(
       children: [
         Expanded(
-          child: AbsorbPointer(
-            // ❌ ปิดการโต้ตอบทั้งหมด
-            child: TextField(
-              controller: _snController,
-              readOnly: true, // ❌ ห้ามพิมพ์
-              focusNode: FocusNode(), // ❌ ป้องกัน focus
-              decoration: InputDecoration(
-                hintText: 'สแกน SN เท่านั้น',
-                filled: true,
-                fillColor: Colors.grey.shade100,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              _snController.text.isEmpty
+                  ? 'สแกน SN เท่านั้น'
+                  : _snController.text,
               style: const TextStyle(fontSize: 14),
             ),
           ),
@@ -508,6 +511,7 @@ class _ScanStockScreenState extends State<ScanStockScreen>
       ],
     );
   }
+
 
   Widget _buildScannedList() {
     return Container(

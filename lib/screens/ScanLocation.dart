@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -380,6 +381,10 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
       bufferDuration: const Duration(milliseconds: 200),
       onBarcodeScanned: (barcode) {
         if (barcode.trim().isEmpty) return;
+
+        SystemChannels.textInput.invokeMethod('TextInput.hide'); // ✅ ปิดคีย์บอร์ดบังคับ
+
+
         FocusScope.of(context).unfocus();
         _controller.text = barcode;
         _scanLocation(barcode);
@@ -410,28 +415,24 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: SizedBox(
+                    child: Container(
                       height: 40,
-                      child: AbsorbPointer(
-                        absorbing: true,
-                        child: TextField(
-                          controller: _controller,
-                          focusNode: _focusNode,
-                          readOnly: true,
-                          enableInteractiveSelection: false,
-                          decoration: InputDecoration(
-                            hintText: 'ยิงบาร์โค้ด Location',
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        _controller.text.isEmpty
+                            ? 'ยิงบาร์โค้ด Location'
+                            : _controller.text,
+                        style: const TextStyle(fontSize: 13),
                       ),
                     ),
                   ),
+
                   const SizedBox(width: 6),
                   Container(
                     height: 40,

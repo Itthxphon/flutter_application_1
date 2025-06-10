@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
 import '../services/api_service.dart';
@@ -530,6 +531,8 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
       onBarcodeScanned: (barcode) {
         if (barcode.trim().isEmpty) return;
 
+        SystemChannels.textInput.invokeMethod('TextInput.hide');
+
         FocusScope.of(context).unfocus();
         setState(() => _isManualInput = false);
 
@@ -580,46 +583,24 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: SizedBox(
+                          child: Container(
                             height: 40,
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() => _isManualInput = true);
-                                _focusNode.requestFocus();
-                              },
-                              child: AbsorbPointer(
-                                absorbing: !_isManualInput,
-                                child: TextField(
-                                  controller: _controller,
-                                  focusNode: _focusNode,
-                                  readOnly: true,
-                                  onTap: () {
-                                    if (_isManualInput) {
-                                      _focusNode.requestFocus();
-                                    }
-                                  },
-                                  onSubmitted: (_) {
-                                    setState(() => _isManualInput = false);
-                                    _scanProduct();
-                                  },
-                                  style: const TextStyle(fontSize: 13),
-                                  decoration: InputDecoration(
-                                    hintText:
-                                        'ค้นหาชื่อสินค้า หรือสแกน ProductID',
-                                    hintStyle: const TextStyle(fontSize: 13),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 0,
-                                      horizontal: 10,
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                ),
-                              ),
+                            alignment: Alignment.centerLeft,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _controller.text.isEmpty
+                                  ? 'ค้นหาชื่อสินค้า หรือสแกน ProductID'
+                                  : _controller.text,
+                              style: const TextStyle(fontSize: 13),
                             ),
                           ),
                         ),
+
 
                         const SizedBox(width: 6),
                         Container(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
 import '../services/api_service.dart';
@@ -357,10 +358,14 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
         onBarcodeScanned: (barcode) {
           final trimmed = barcode.trim();
           if (trimmed.isNotEmpty) {
+            SystemChannels.textInput.invokeMethod('TextInput.hide'); // ✅ ปิดคีย์บอร์ด
+            FocusScope.of(context).unfocus();
+
+            _barcodeController.text = trimmed;
             _loadByProcessOrderId(trimmed);
-            _barcodeFocusNode.unfocus();
           }
         },
+
         child: Container(
           color: Colors.white,
           padding: const EdgeInsets.all(12),
@@ -371,34 +376,20 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                   Expanded(
                     child: SizedBox(
                       height: 42,
-                      child: TextField(
-                        controller: _barcodeController,
-                        focusNode: _barcodeFocusNode,
-                        readOnly: false,
-                        onSubmitted: (text) {
-                          if (text.trim().isNotEmpty) {
-                            _loadByProcessOrderId(text.trim());
-                            _barcodeFocusNode.unfocus();
-                          }
-                        },
-                        style: const TextStyle(fontSize: 14),
-                        decoration: InputDecoration(
-                          hintText: 'ยิงบาร์โค้ด ProcessOrderId',
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Colors.black12),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Colors.black26),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Colors.black87),
-                          ),
+                      child: Container(
+                        height: 42,
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          border: Border.all(color: Colors.black26),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          _barcodeController.text.isEmpty
+                              ? 'ยิงบาร์โค้ด ProcessOrderId'
+                              : _barcodeController.text,
+                          style: const TextStyle(fontSize: 14),
                         ),
                       ),
                     ),
