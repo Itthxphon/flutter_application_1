@@ -592,11 +592,10 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                                 child: TextField(
                                   controller: _controller,
                                   focusNode: _focusNode,
-                                  readOnly: true, // ✅ ป้องกันคีย์บอร์ดจากระบบ
+                                  readOnly: true,
                                   onTap: () {
                                     if (_isManualInput) {
-                                      _focusNode
-                                          .requestFocus(); // ✅ เฉพาะตอนแตะช่อง
+                                      _focusNode.requestFocus();
                                     }
                                   },
                                   onSubmitted: (_) {

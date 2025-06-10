@@ -330,7 +330,7 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                         },
                         style: const TextStyle(fontSize: 14),
                         decoration: InputDecoration(
-                          hintText: 'ยิงบาร์โค้ด Location',
+                          hintText: 'ยิงบาร์โค้ด ProcessOrderId',
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10,
                           ),
