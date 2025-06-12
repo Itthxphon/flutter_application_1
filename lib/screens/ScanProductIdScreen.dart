@@ -122,13 +122,13 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
 
         await _saveScannedList();
       } else {
-        _showAlertDialog(
+        _showProductAlertDialog(
           title: '⚠️ ไม่พบสินค้า',
           message: 'ไม่พบข้อมูลสินค้าสำหรับ: $keyword',
         );
       }
     } catch (_) {
-      _showAlertDialog(
+      _showProductAlertDialog(
         title: '⚠️ เกิดข้อผิดพลาด',
         message: 'ไม่พบข้อมูลสินค้า',
       );
@@ -147,7 +147,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
     await prefs.setString('scannedProducts', encoded);
   }
 
-  void _showAlertDialog({
+  void _showProductAlertDialog({
     required String title,
     required String message,
     bool autoClose = false,
@@ -318,7 +318,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
       });
 
       if (mounted) {
-        _showAlertDialog(
+        _showProductAlertDialog(
           title: '✅ แจ้งเตือน',
           message: result['message'] ?? 'เปลี่ยนสถานที่สำเร็จ',
           autoClose: true,
@@ -327,7 +327,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
       }
     } catch (_) {
       if (mounted) {
-        _showAlertDialog(
+        _showProductAlertDialog(
           title: '❌ ผิดพลาด',
           message: 'ไม่พบสถานที่ในระบบ',
           autoClose: true,
@@ -600,7 +600,6 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
                             ),
                           ),
                         ),
-
 
                         const SizedBox(width: 6),
                         Container(

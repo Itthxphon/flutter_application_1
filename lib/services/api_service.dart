@@ -243,7 +243,10 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> printAndLog(String processOrderId, String employeeName) async {
+  static Future<Map<String, dynamic>> printAndLog(
+    String processOrderId,
+    String employeeName,
+  ) async {
     final uri = Uri.parse('$baseUrl/print');
 
     final response = await http.post(
@@ -258,13 +261,13 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else if (response.statusCode == 409) {
-      throw Exception('มีรายการ print ที่ยังไม่สำเร็จอยู่แล้วสำหรับคำสั่งผลิตนี้');
+      throw Exception(
+        'มีรายการ print ที่ยังไม่สำเร็จอยู่แล้วสำหรับคำสั่งผลิตนี้',
+      );
     } else if (response.statusCode == 400) {
       throw Exception('กรุณาระบุ processOrderId และ employeeName');
     } else {
       throw Exception('เกิดข้อผิดพลาด: ${response.body}');
     }
   }
-
-
 }

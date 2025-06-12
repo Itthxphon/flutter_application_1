@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import '../services/api_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -15,7 +18,6 @@ class ProductionStatusScreen extends StatefulWidget {
 }
 
 class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
-  List<Map<String, dynamic>> _allData = [];
   List<Map<String, dynamic>> _filteredData = [];
   final TextEditingController _barcodeController = TextEditingController();
   final FocusNode _barcodeFocusNode = FocusNode();
@@ -43,7 +45,6 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
       final results = await ApiService.getProcessOrderDetail('ALL');
       final casted = results.cast<Map<String, dynamic>>();
       setState(() {
-        _allData = casted;
         _filteredData = casted;
         _isLoading = false;
       });
@@ -52,9 +53,29 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
     }
   }
 
+  Future<void> _loadByProcessOrderId(String id) async {
+    try {
+      setState(() => _isLoading = true);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('F_ProcessOrderId', id); // <-- เพิ่มตรงนี้
+      final results = await ApiService.getProcessOrderDetail(id);
+      final casted = results.cast<Map<String, dynamic>>();
+
+      setState(() {
+        _barcodeController.clear();
+        _filteredData = casted;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('ไม่พบข้อมูลคำสั่งผลิต')));
+    }
+  }
+
   void _showFullScreenImage(BuildContext context, String imageUrl) {
     if (imageUrl.isEmpty) return;
-
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -71,7 +92,7 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                   minScale: 1,
                   maxScale: 4,
                   child:
-                      (imageUrl.startsWith('http'))
+                      imageUrl.startsWith('http')
                           ? CachedNetworkImage(
                             imageUrl: imageUrl,
                             fit: BoxFit.contain,
@@ -88,7 +109,6 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                 ),
               ),
             ),
-            // ปุ่มกากบาทขวาบนสุดแบบ LINE
             Positioned(
               top: 0,
               right: 0,
@@ -103,24 +123,6 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
         );
       },
     );
-  }
-
-  Future<void> _loadByProcessOrderId(String id) async {
-    try {
-      setState(() => _isLoading = true);
-      final results = await ApiService.getProcessOrderDetail(id);
-      final casted = results.cast<Map<String, dynamic>>();
-      setState(() {
-        _barcodeController.clear();
-        _filteredData = casted;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('ไม่พบข้อมูลคำสั่งผลิต')));
-    }
   }
 
   Color _mapColor(String? color) {
@@ -170,7 +172,7 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
       case 'pink':
         return Colors.pink;
       default:
-        return const Color(0xFF00008B); // fallback สีเดิม
+        return const Color(0xFF00008B);
     }
   }
 
@@ -190,9 +192,7 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 5, offset: Offset(0, 2)),
-        ],
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5)],
         border: Border(left: BorderSide(color: color, width: 4)),
       ),
       child: Column(
@@ -213,22 +213,16 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
           ),
           Text(
             item['F_ProcessOrderId'] ?? '-',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-
-          const SizedBox(height: 2),
-
           Text(
             item['F_ProductName'] ?? '-',
             style: const TextStyle(fontSize: 13),
           ),
-          const SizedBox(height: 1),
-
           Text(
             'ประเภทพิมพ์ : ${item['F_Product_PrintTypeName'] ?? '-'}',
             style: const TextStyle(fontSize: 13),
           ),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -247,21 +241,14 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                 ),
                 child: Text(
                   item['F_StationName'] ?? '-',
-                  style: TextStyle(
-                    color: stationColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: stationColor),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-
           GestureDetector(
-            onTap: () {
-              _showFullScreenImage(context, imagePath);
-            },
+            onTap: () => _showFullScreenImage(context, imagePath),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Container(
@@ -272,10 +259,10 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                 ),
                 color: Colors.grey[100],
                 child:
-                    (imagePath.isNotEmpty && imagePath.startsWith('http'))
+                    imagePath.isNotEmpty && imagePath.startsWith('http')
                         ? CachedNetworkImage(
                           imageUrl: imagePath,
-                          fit: BoxFit.contain, // <- ปรับให้ไม่ crop
+                          fit: BoxFit.contain,
                           alignment: Alignment.center,
                           placeholder:
                               (context, url) => const Center(
@@ -299,30 +286,67 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
     );
   }
 
-  Widget _buildQtyBox(String label, dynamic value, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        decoration: BoxDecoration(
-          border: Border.all(color: color.withOpacity(0.4)),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          children: [
-            Text(label, style: const TextStyle(fontSize: 11)),
-            const SizedBox(height: 2),
-            Text(
-              '${NumberFormat('#,###').format(value ?? 0)}',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: color,
-                fontSize: 13,
+  void _showAlert(
+    String title,
+    String message,
+    IconData icon,
+    Color color, {
+    bool autoClose = true,
+  }) {
+    bool isDialogOpen = true;
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true, // ✅ แตะนอกจอเพื่อปิดได้
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(icon, color: color),
+              const SizedBox(width: 8),
+              Expanded(child: Text(title)),
+            ],
+          ),
+          content: Text(message),
+          actionsPadding: const EdgeInsets.only(bottom: 12, right: 12),
+          actionsAlignment: MainAxisAlignment.end,
+          actions: [
+            OutlinedButton(
+              onPressed: () {
+                if (isDialogOpen && mounted && Navigator.of(context).canPop()) {
+                  isDialogOpen = false;
+                  Navigator.of(context).pop();
+                }
+              },
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                side: const BorderSide(color: Colors.deepPurple),
+              ),
+              child: const Text(
+                'ตกลง',
+                style: TextStyle(color: Colors.deepPurple),
               ),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
+
+    if (autoClose) {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (isDialogOpen && mounted && Navigator.of(context).canPop()) {
+          isDialogOpen = false;
+          Navigator.of(context).pop();
+        }
+      });
+    }
   }
 
   @override
@@ -341,7 +365,6 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'ล้างข้อมูล',
             onPressed: () {
               FocusScope.of(context).unfocus();
               _barcodeController.clear();
@@ -358,39 +381,32 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
         onBarcodeScanned: (barcode) {
           final trimmed = barcode.trim();
           if (trimmed.isNotEmpty) {
-            SystemChannels.textInput.invokeMethod('TextInput.hide'); // ✅ ปิดคีย์บอร์ด
+            SystemChannels.textInput.invokeMethod('TextInput.hide');
             FocusScope.of(context).unfocus();
-
             _barcodeController.text = trimmed;
             _loadByProcessOrderId(trimmed);
           }
         },
-
         child: Container(
-          color: Colors.white,
           padding: const EdgeInsets.all(12),
           child: Column(
             children: [
               Row(
                 children: [
                   Expanded(
-                    child: SizedBox(
+                    child: Container(
                       height: 42,
-                      child: Container(
-                        height: 42,
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          border: Border.all(color: Colors.black26),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          _barcodeController.text.isEmpty
-                              ? 'ยิงบาร์โค้ด ProcessOrderId'
-                              : _barcodeController.text,
-                          style: const TextStyle(fontSize: 14),
-                        ),
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        border: Border.all(color: Colors.black26),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        _barcodeController.text.isEmpty
+                            ? 'ยิงบาร์โค้ด ProcessOrderId'
+                            : _barcodeController.text,
                       ),
                     ),
                   ),
@@ -412,7 +428,6 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                       ),
                       child: const Icon(
                         Icons.qr_code_scanner,
-                        size: 22,
                         color: Colors.white,
                       ),
                     ),
@@ -434,6 +449,82 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                         ),
               ),
             ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        child: SizedBox(
+          width: double.infinity,
+          height: 44,
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.print),
+            label: const Text('พิมพ์'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1B1F2B),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              final employeeName = prefs.getString('employeeName') ?? '';
+              final processOrderId = prefs.getString('F_ProcessOrderId') ?? '';
+
+              if (processOrderId.isEmpty || employeeName.isEmpty) {
+                _showAlert(
+                  'ไม่พบข้อมูล',
+                  'ไม่พบข้อมูล ProcessOrderId หรือชื่อพนักงาน',
+                  Icons.warning_amber_rounded,
+                  Colors.orange,
+                );
+                return;
+              }
+
+              // final printedList =
+              //     prefs.getStringList('printedProcessOrders') ?? [];
+
+              // if (printedList.contains(processOrderId)) {
+              //   _showAlert(
+              //     'เคยพิมพ์ไปแล้ว',
+              //     'ProcessOrderId "$processOrderId"\nเคยถูกสั่งพิมพ์ไปแล้ว',
+              //     Icons.info_outline,
+              //     Colors.orange,
+              //   );
+              //   return;
+              // }
+
+              try {
+                final result = await ApiService.printAndLog(
+                  processOrderId,
+                  employeeName,
+                );
+
+                if (result['alreadyPrinted'] == true) {
+                  _showAlert(
+                    'เคยพิมพ์ไปแล้ว',
+                    'ProcessOrderId "$processOrderId"\nเคยถูกสั่งพิมพ์ไปแล้ว',
+                    Icons.info_outline,
+                    Colors.orange,
+                  );
+                } else {
+                  _showAlert(
+                    'พิมพ์สำเร็จ',
+                    'พิมพ์สำเร็จสำหรับ\nProcessOrderId "$processOrderId"',
+                    Icons.check_circle_outline,
+                    Colors.green,
+                  );
+                }
+              } catch (e) {
+                _showAlert(
+                  'เกิดข้อผิดพลาด',
+                  e.toString(),
+                  Icons.error_outline,
+                  Colors.orange,
+                );
+              }
+            },
           ),
         ),
       ),

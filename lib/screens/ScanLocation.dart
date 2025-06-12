@@ -51,7 +51,7 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
       if (!mounted) return;
 
       if (result.isEmpty) {
-        _showAlertDialog(
+        _showLocationAlertDialog(
           title: '❌ ไม่พบสถานที่',
           message: 'ไม่พบ Location ที่สแกน',
           autoClose: true,
@@ -62,7 +62,7 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
       setState(() => _products = result);
     } catch (_) {
       if (!mounted) return;
-      _showAlertDialog(
+      _showLocationAlertDialog(
         title: '❌ ไม่พบสถานที่',
         message: 'ไม่พบ Location ที่สแกน',
         autoClose: true,
@@ -76,7 +76,7 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
     }
   }
 
-  void _showAlertDialog({
+  void _showLocationAlertDialog({
     required String title,
     required String message,
     bool autoClose = false,
@@ -382,8 +382,9 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
       onBarcodeScanned: (barcode) {
         if (barcode.trim().isEmpty) return;
 
-        SystemChannels.textInput.invokeMethod('TextInput.hide'); // ✅ ปิดคีย์บอร์ดบังคับ
-
+        SystemChannels.textInput.invokeMethod(
+          'TextInput.hide',
+        ); // ✅ ปิดคีย์บอร์ดบังคับ
 
         FocusScope.of(context).unfocus();
         _controller.text = barcode;

@@ -82,13 +82,13 @@ class _SearchProductScreenState extends State<SearchProductScreen> {
           _results[index]['F_Location'] = newLocation;
         }
       });
-      _showAlertDialog(
+      _showSearchAlertDialog(
         '✅ สำเร็จ',
         'เปลี่ยนสถานที่เรียบร้อยแล้ว',
         autoClose: true,
       );
     } catch (_) {
-      _showAlertDialog('❌ ผิดพลาด', 'ไม่สามารถเปลี่ยนสถานที่ได้');
+      _showSearchAlertDialog('❌ ผิดพลาด', 'ไม่สามารถเปลี่ยนสถานที่ได้');
     }
   }
 
@@ -136,7 +136,7 @@ class _SearchProductScreenState extends State<SearchProductScreen> {
     );
   }
 
-  void _showAlertDialog(
+  void _showSearchAlertDialog(
     String title,
     String message, {
     bool autoClose = false,
