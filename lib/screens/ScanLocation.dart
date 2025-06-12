@@ -52,8 +52,10 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
 
       if (result.isEmpty) {
         _showLocationAlertDialog(
-          title: '❌ ไม่พบสถานที่',
-          message: 'ไม่พบ Location ที่สแกน',
+          title: 'เปลี่ยนสำเร็จ',
+          message: 'เปลี่ยนสถานที่เรียบร้อยแล้ว',
+          icon: Icons.check_circle_outline,
+          color: Colors.green,
           autoClose: true,
         );
       }
@@ -63,8 +65,10 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
     } catch (_) {
       if (!mounted) return;
       _showLocationAlertDialog(
-        title: '❌ ไม่พบสถานที่',
+        title: 'ไม่พบสถานที่',
         message: 'ไม่พบ Location ที่สแกน',
+        icon: Icons.info_outline,
+        color: Colors.orange,
         autoClose: true,
       );
     } finally {
@@ -79,7 +83,9 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
   void _showLocationAlertDialog({
     required String title,
     required String message,
-    bool autoClose = false,
+    IconData icon = Icons.info_outline,
+    Color color = Colors.orange,
+    bool autoClose = true,
     Duration duration = const Duration(seconds: 2),
   }) {
     bool isDialogOpen = true;
@@ -88,30 +94,40 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
 
     showDialog(
       context: context,
-      barrierDismissible: true,
+      barrierDismissible: true, // ✅ แตะที่ว่างเพื่อปิดได้
       builder: (context) {
         return AlertDialog(
-          backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
           ),
-          title: Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1B1F2B),
-            ),
+          title: Row(
+            children: [
+              Icon(icon, color: color),
+              const SizedBox(width: 8),
+              Expanded(child: Text(title)),
+            ],
           ),
           content: Text(message),
+          actionsPadding: const EdgeInsets.only(bottom: 12, right: 12),
+          actionsAlignment: MainAxisAlignment.end,
           actions: [
-            TextButton(
+            OutlinedButton(
               onPressed: () {
                 if (isDialogOpen && mounted && Navigator.of(context).canPop()) {
                   isDialogOpen = false;
                   Navigator.of(context).pop();
                 }
               },
-              child: const Text('ตกลง'),
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                side: const BorderSide(color: Colors.deepPurple),
+              ),
+              child: const Text(
+                'ตกลง',
+                style: TextStyle(color: Colors.deepPurple),
+              ),
             ),
           ],
         );
@@ -120,7 +136,8 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
 
     if (autoClose) {
       Future.delayed(duration, () {
-        if (mounted && Navigator.of(context).canPop()) {
+        if (isDialogOpen && mounted && Navigator.of(context).canPop()) {
+          isDialogOpen = false;
           Navigator.of(context).pop();
         }
       });

@@ -123,14 +123,18 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
         await _saveScannedList();
       } else {
         _showProductAlertDialog(
-          title: '⚠️ ไม่พบสินค้า',
+          title: 'ไม่พบสินค้า',
           message: 'ไม่พบข้อมูลสินค้าสำหรับ: $keyword',
+          icon: Icons.info_outline,
+          color: Colors.orange,
         );
       }
     } catch (_) {
       _showProductAlertDialog(
-        title: '⚠️ เกิดข้อผิดพลาด',
+        title: 'เกิดข้อผิดพลาด',
         message: 'ไม่พบข้อมูลสินค้า',
+        icon: Icons.info_outline,
+        color: Colors.orange,
       );
     } finally {
       if (!mounted) return;
@@ -150,7 +154,9 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
   void _showProductAlertDialog({
     required String title,
     required String message,
-    bool autoClose = false,
+    IconData icon = Icons.info_outline,
+    Color color = Colors.deepPurple,
+    bool autoClose = true,
     Duration duration = const Duration(seconds: 2),
   }) {
     bool isDialogOpen = true;
@@ -162,27 +168,37 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
       barrierDismissible: true,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFFF8F0FF),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
           ),
-          title: Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1B1F2B),
-            ),
+          title: Row(
+            children: [
+              Icon(icon, color: color),
+              const SizedBox(width: 8),
+              Expanded(child: Text(title)),
+            ],
           ),
           content: Text(message),
+          actionsPadding: const EdgeInsets.only(bottom: 12, right: 12),
+          actionsAlignment: MainAxisAlignment.end,
           actions: [
-            TextButton(
+            OutlinedButton(
               onPressed: () {
                 if (isDialogOpen && mounted && Navigator.of(context).canPop()) {
                   isDialogOpen = false;
                   Navigator.of(context).pop();
                 }
               },
-              child: const Text('ตกลง'),
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                side: const BorderSide(color: Colors.deepPurple),
+              ),
+              child: const Text(
+                'ตกลง',
+                style: TextStyle(color: Colors.deepPurple),
+              ),
             ),
           ],
         );
@@ -191,7 +207,8 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
 
     if (autoClose) {
       Future.delayed(duration, () {
-        if (mounted && Navigator.of(context).canPop()) {
+        if (isDialogOpen && mounted && Navigator.of(context).canPop()) {
+          isDialogOpen = false;
           Navigator.of(context).pop();
         }
       });
@@ -321,6 +338,8 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
         _showProductAlertDialog(
           title: '✅ แจ้งเตือน',
           message: result['message'] ?? 'เปลี่ยนสถานที่สำเร็จ',
+          icon: Icons.check_circle_outline,
+          color: Colors.green,
           autoClose: true,
         );
         await _saveScannedList();
