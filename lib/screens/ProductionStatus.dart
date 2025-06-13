@@ -21,12 +21,11 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
   List<Map<String, dynamic>> _filteredData = [];
   final TextEditingController _barcodeController = TextEditingController();
   final FocusNode _barcodeFocusNode = FocusNode();
-  bool _isLoading = true;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadAllOrders();
   }
 
   @override
@@ -34,23 +33,6 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
     _barcodeController.dispose();
     _barcodeFocusNode.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadAllOrders() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _barcodeController.clear();
-      });
-      final results = await ApiService.getProcessOrderDetail('ALL');
-      final casted = results.cast<Map<String, dynamic>>();
-      setState(() {
-        _filteredData = casted;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-    }
   }
 
   Future<void> _loadByProcessOrderId(String id) async {
@@ -164,7 +146,7 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
         return Colors.purple;
       case 'black':
         return Colors.black;
-      case 'grey':
+
       case 'gray':
         return Colors.grey;
       case 'orange':
@@ -193,7 +175,9 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5)],
-        border: Border(left: BorderSide(color: color, width: 4)),
+        border: Border(
+          left: BorderSide(color: stationColor, width: 4),
+        ), // << ใช้ stationColor แทน
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,13 +349,17 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () {
+            onPressed: () async {
               FocusScope.of(context).unfocus();
-              _barcodeController.clear();
+
               setState(() {
+                _barcodeController.clear();
                 _filteredData.clear();
                 _isLoading = false;
               });
+
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.remove('F_ProcessOrderId');
             },
           ),
         ],
@@ -404,9 +392,12 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        _barcodeController.text.isEmpty
-                            ? 'ยิงบาร์โค้ด ProcessOrderId'
-                            : _barcodeController.text,
+                        'ยิงบาร์โค้ด ProcessOrderId',
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 14,
+                          fontWeight: FontWeight.normal,
+                        ),
                       ),
                     ),
                   ),
@@ -469,6 +460,7 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
             ),
             onPressed: () async {
               final prefs = await SharedPreferences.getInstance();
+
               final employeeName = prefs.getString('employeeName') ?? '';
               final processOrderId = prefs.getString('F_ProcessOrderId') ?? '';
 
