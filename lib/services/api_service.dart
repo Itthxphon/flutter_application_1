@@ -243,18 +243,18 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> printAndLog(
-    String processOrderId,
-    String employeeName,
-  ) async {
-    final uri = Uri.parse('$baseUrl/print');
-
+  Future<Map<String, dynamic>> printAndLog({
+    required String processOrderId,
+    required String employeeName,
+    required String printerId,
+  }) async {
     final response = await http.post(
-      uri,
+      Uri.parse('$baseUrl/print'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'processOrderId': processOrderId,
         'employeeName': employeeName,
+        'PrinterId': printerId,
       }),
     );
 
@@ -265,9 +265,22 @@ class ApiService {
         'มีรายการ print ที่ยังไม่สำเร็จอยู่แล้วสำหรับคำสั่งผลิตนี้',
       );
     } else if (response.statusCode == 400) {
-      throw Exception('กรุณาระบุ processOrderId และ employeeName');
+      throw Exception('กรุณาระบุ processOrderId, employeeName และ PrinterName');
     } else {
       throw Exception('เกิดข้อผิดพลาด: ${response.body}');
+    }
+  }
+
+  Future<List<dynamic>> fetchPrinters() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/printers'), // ✅
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['printers'];
+    } else {
+      throw Exception('Failed to load printers');
     }
   }
 }

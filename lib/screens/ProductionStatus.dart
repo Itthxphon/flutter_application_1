@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../services/api_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 class ProductionStatusScreen extends StatefulWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
@@ -22,10 +23,35 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
   final TextEditingController _barcodeController = TextEditingController();
   final FocusNode _barcodeFocusNode = FocusNode();
   bool _isLoading = false;
+  List<Map<String, dynamic>> _printerOptions = [];
+  String? _selectedPrinterId;
 
   @override
   void initState() {
     super.initState();
+    _loadPrinters();
+  }
+
+  Future<void> _loadPrinters() async {
+    try {
+      final apiService = ApiService();
+      final printers = await apiService.fetchPrinters();
+
+      if (printers.isEmpty) {
+        _showAlert(
+          'ไม่มีเครื่องพิมพ์',
+          'ไม่พบเครื่องพิมพ์ที่ระบบส่งมา',
+          Icons.print_disabled,
+          Colors.orange,
+        );
+      } else {
+        setState(() {
+          _printerOptions = printers.cast<Map<String, dynamic>>();
+        });
+      }
+    } catch (e) {
+      debugPrint('🔥 โหลด printer ผิด: $e');
+    }
   }
 
   @override
@@ -349,17 +375,17 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () async {
+            onPressed: () {
               FocusScope.of(context).unfocus();
-
-              setState(() {
-                _barcodeController.clear();
-                _filteredData.clear();
-                _isLoading = false;
-              });
-
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.remove('F_ProcessOrderId');
+              final currentId = _barcodeController.text.trim();
+              if (currentId.isNotEmpty) {
+                _loadByProcessOrderId(currentId);
+              } else {
+                setState(() {
+                  _filteredData.clear();
+                  _isLoading = false;
+                });
+              }
             },
           ),
         ],
@@ -375,10 +401,12 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
             _loadByProcessOrderId(trimmed);
           }
         },
-        child: Container(
+        child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ✅ Dropdown อยู่ตรงนี้
               Row(
                 children: [
                   Expanded(
@@ -392,12 +420,9 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        'ยิงบาร์โค้ด ProcessOrderId',
-                        style: TextStyle(
-                          color: Colors.black87,
-                          fontSize: 14,
-                          fontWeight: FontWeight.normal,
-                        ),
+                        _barcodeController.text.isEmpty
+                            ? 'ยิงบาร์โค้ด ProcessOrderId'
+                            : _barcodeController.text,
                       ),
                     ),
                   ),
@@ -425,7 +450,10 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                   ),
                 ],
               ),
+
               const SizedBox(height: 12),
+
+              // ✅ แสดงข้อมูล
               Expanded(
                 child:
                     _isLoading
@@ -443,80 +471,162 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-        child: SizedBox(
-          width: double.infinity,
-          height: 44,
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.print),
-            label: const Text('พิมพ์'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1B1F2B),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Builder(
+                builder: (context) {
+                  return GestureDetector(
+                    onTap: () {
+                      final RenderBox renderBox =
+                          context.findRenderObject() as RenderBox;
+                      final Offset offset = renderBox.localToGlobal(
+                        Offset.zero,
+                      );
+
+                      showMenu<String>(
+                        context: context,
+                        position: RelativeRect.fromLTRB(
+                          offset.dx + renderBox.size.width - 200, // ชิดขวา
+                          offset.dy - (_printerOptions.length * 48), // เด้งขึ้น
+                          offset.dx + renderBox.size.width,
+                          offset.dy,
+                        ),
+                        items:
+                            _printerOptions.map((printer) {
+                              return PopupMenuItem<String>(
+                                value: printer['f_PrinterID']?.toString(),
+                                child: Text(
+                                  printer['f_PrinterName']?.toString() ??
+                                      'ไม่ทราบชื่อ',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              );
+                            }).toList(),
+                      ).then((selectedValue) {
+                        if (selectedValue != null) {
+                          setState(() {
+                            _selectedPrinterId = selectedValue;
+                          });
+                        }
+                      });
+                    },
+                    child: Container(
+                      height: 44,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: Colors.black26),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _printerOptions
+                                      .firstWhere(
+                                        (p) =>
+                                            p['f_PrinterID'] ==
+                                            _selectedPrinterId,
+                                        orElse: () => {},
+                                      )['f_PrinterName']
+                                      ?.toString() ??
+                                  'กรุณาเลือกเครื่องพิมพ์',
+                              style: const TextStyle(fontSize: 14),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const Icon(Icons.arrow_drop_up),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
-            ),
-            onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
 
-              final employeeName = prefs.getString('employeeName') ?? '';
-              final processOrderId = prefs.getString('F_ProcessOrderId') ?? '';
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 44,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.print),
+                  label: const Text('พิมพ์'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1B1F2B),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    final employeeName = prefs.getString('employeeName') ?? '';
+                    final processOrderId =
+                        prefs.getString('F_ProcessOrderId') ?? '';
 
-              if (processOrderId.isEmpty || employeeName.isEmpty) {
-                _showAlert(
-                  'ไม่พบข้อมูล',
-                  'ไม่พบข้อมูล ProcessOrderId หรือชื่อพนักงาน',
-                  Icons.warning_amber_rounded,
-                  Colors.orange,
-                );
-                return;
-              }
+                    if (processOrderId.isEmpty || employeeName.isEmpty) {
+                      _showAlert(
+                        'ไม่พบข้อมูล',
+                        'ไม่พบข้อมูล ProcessOrderId หรือชื่อพนักงาน',
+                        Icons.warning_amber_rounded,
+                        Colors.orange,
+                      );
+                      return;
+                    }
 
-              // final printedList =
-              //     prefs.getStringList('printedProcessOrders') ?? [];
+                    final apiService = ApiService();
+                    try {
+                      final result = await apiService.printAndLog(
+                        processOrderId: processOrderId,
+                        employeeName: employeeName,
+                        printerId: _selectedPrinterId ?? '',
+                      );
 
-              // if (printedList.contains(processOrderId)) {
-              //   _showAlert(
-              //     'เคยพิมพ์ไปแล้ว',
-              //     'ProcessOrderId "$processOrderId"\nเคยถูกสั่งพิมพ์ไปแล้ว',
-              //     Icons.info_outline,
-              //     Colors.orange,
-              //   );
-              //   return;
-              // }
+                      // ✅ เช็คว่าข้อมูลที่ได้กลับมาเป็น Map และมี key 'alreadyPrinted'
+                      if (result is Map<String, dynamic>) {
+                        final alreadyPrinted = result['alreadyPrinted'] == true;
 
-              try {
-                final result = await ApiService.printAndLog(
-                  processOrderId,
-                  employeeName,
-                );
-
-                if (result['alreadyPrinted'] == true) {
-                  _showAlert(
-                    'เคยพิมพ์ไปแล้ว',
-                    'ProcessOrderId "$processOrderId"\nเคยถูกสั่งพิมพ์ไปแล้ว',
-                    Icons.info_outline,
-                    Colors.orange,
-                  );
-                } else {
-                  _showAlert(
-                    'พิมพ์สำเร็จ',
-                    'พิมพ์สำเร็จสำหรับ\nProcessOrderId "$processOrderId"',
-                    Icons.check_circle_outline,
-                    Colors.green,
-                  );
-                }
-              } catch (e) {
-                _showAlert(
-                  'เกิดข้อผิดพลาด',
-                  e.toString(),
-                  Icons.error_outline,
-                  Colors.orange,
-                );
-              }
-            },
+                        if (alreadyPrinted) {
+                          _showAlert(
+                            'เคยพิมพ์ไปแล้ว',
+                            'ใบกำกับการผลิต "$processOrderId"\nเคยถูกสั่งพิมพ์ไปแล้ว',
+                            Icons.info_outline,
+                            Colors.orange,
+                          );
+                        } else {
+                          _showAlert(
+                            'พิมพ์สำเร็จ',
+                            'พิมพ์สำเร็จสำหรับ\nProcessOrderId "$processOrderId"',
+                            Icons.check_circle_outline,
+                            Colors.green,
+                          );
+                        }
+                      } else {
+                        // ถ้าไม่ได้ Map กลับมา
+                        _showAlert(
+                          'เกิดข้อผิดพลาด',
+                          'ผลลัพธ์จากเซิร์ฟเวอร์ไม่ถูกต้อง',
+                          Icons.error_outline,
+                          Colors.red,
+                        );
+                      }
+                    } catch (e) {
+                      _showAlert(
+                        'เคยพิมพ์ไปแล้ว',
+                        'ใบกำกับการผลิต "$processOrderId"\nเคยถูกสั่งพิมพ์ไปแล้ว',
+                        Icons.info_outline,
+                        Colors.orange,
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),
