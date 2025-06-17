@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import '../services/api_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class ProductionStatusScreen extends StatefulWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
@@ -84,53 +85,59 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
 
   void _showFullScreenImage(BuildContext context, String imageUrl) {
     if (imageUrl.isEmpty) return;
+
     showDialog(
       context: context,
       barrierDismissible: true,
+      barrierColor: Colors.black,
       builder: (context) {
         return Stack(
           children: [
-            GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: Container(
-                color: Colors.black.withOpacity(0.95),
-                alignment: Alignment.center,
-                child: InteractiveViewer(
-                  panEnabled: true,
-                  minScale: 1,
-                  maxScale: 4,
-                  child:
-                      imageUrl.startsWith('http')
-                          ? CachedNetworkImage(
-                            imageUrl: imageUrl,
-                            fit: BoxFit.contain,
-                            errorWidget:
-                                (context, url, error) => Image.asset(
-                                  'assets/images/pp.png',
-                                  fit: BoxFit.contain,
-                                ),
-                          )
-                          : Image.asset(
-                            'assets/images/pp.png',
-                            fit: BoxFit.contain,
-                          ),
-                ),
+            InteractiveViewer(
+              panEnabled: true,
+              minScale: 1,
+              maxScale: 5,
+              child: SizedBox.expand(
+                // ✅ กินทั้งจอ
+                child:
+                    imageUrl.startsWith('http')
+                        ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.contain, // ✅ ปรับเป็น cover ได้ถ้าต้องการ
+                          errorWidget:
+                              (context, url, error) => Image.asset(
+                                'assets/images/pp.png',
+                                fit: BoxFit.contain,
+                              ),
+                        )
+                        : Image.asset(
+                          'assets/images/pp.png',
+                          fit: BoxFit.contain,
+                        ),
               ),
             ),
             Positioned(
-              top: 0,
-              right: 0,
-              child: SafeArea(
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white, size: 30),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
+              top: 40,
+              right: 20,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                onPressed: () => Navigator.of(context).pop(),
               ),
             ),
           ],
         );
       },
     );
+  }
+
+  String _formatNumber(dynamic value) {
+    try {
+      final number = num.tryParse(value.toString().replaceAll(',', ''));
+      if (number != null) {
+        return NumberFormat.decimalPattern().format(number);
+      }
+    } catch (_) {}
+    return value.toString(); // ถ้าไม่ใช่ตัวเลข ให้คืนค่าตามเดิม
   }
 
   Color _mapColor(String? color) {
@@ -225,9 +232,15 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
             item['F_ProcessOrderId'] ?? '-',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          Text(
+          AutoSizeText(
             item['F_ProductName'] ?? '-',
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.normal, // เพิ่มได้ถ้าต้องการ
+            ),
+            maxLines: 2, // ✅ จำกัดไม่เกิน 2 บรรทัด
+            minFontSize: 10, // ✅ ลดได้ถึงขนาดนี้เพื่อให้พอดี
+            overflow: TextOverflow.ellipsis, // ✅ ตัดข้อความท้ายสุดหากจำเป็น
           ),
           Text(
             'ประเภทพิมพ์ : ${item['F_Product_PrintTypeName'] ?? '-'}',
@@ -257,6 +270,8 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
             ],
           ),
           const SizedBox(height: 8),
+          _buildInfoGrid(item), // ✅ วางตรงนี้
+          const SizedBox(height: 8),
           GestureDetector(
             onTap: () => _showFullScreenImage(context, imagePath),
             child: ClipRRect(
@@ -273,7 +288,6 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                         ? CachedNetworkImage(
                           imageUrl: imagePath,
                           fit: BoxFit.contain,
-                          alignment: Alignment.center,
                           placeholder:
                               (context, url) => const Center(
                                 child: CircularProgressIndicator(),
@@ -294,6 +308,113 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildInfoGrid(Map<String, dynamic> item) {
+    Widget buildBox(String title, String value, Color color) {
+      return Expanded(
+        child: Container(
+          margin: const EdgeInsets.all(4),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 4,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: 18, // ✅ กำหนดความสูงให้กล่องข้อความแน่นอน
+                child: AutoSizeText(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  minFontSize: 6,
+                  stepGranularity: 0.5,
+                ),
+              ),
+              const SizedBox(height: 4),
+              SizedBox(
+                height: 20, // ✅ ความสูงสำหรับเลขหรือข้อความ value
+                child: AutoSizeText(
+                  _formatNumber(value),
+                  style: TextStyle(color: color, fontWeight: FontWeight.w600),
+                  maxLines: 1,
+                  minFontSize: 9,
+                  stepGranularity: 0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            buildBox(
+              'สั่งผลิต',
+              '${item['F_TotalQtyFG'] ?? '-'}',
+              Colors.deepPurple,
+            ),
+            buildBox('SO', '${item['F_QtySaleOrder'] ?? '-'}', Colors.indigo),
+            buildBox('WP', '${item['F_WPQTY'] ?? '-'}', Colors.orange),
+            buildBox(
+              'ต้องผลิต',
+              '${item['F_TotalQtyFGReal'] ?? '-'}',
+              Colors.green,
+            ),
+          ],
+        ),
+
+        Row(
+          children: [
+            buildBox(
+              'PLATE',
+              _checkLabel(item['F_CheckPlate']),
+              _checkColor(item['F_CheckPlate']),
+            ),
+            buildBox(
+              'BLOCK',
+              _checkLabel(item['F_CheckBlock']),
+              _checkColor(item['F_CheckBlock']),
+            ),
+            buildBox(
+              'COLOUR',
+              _checkLabel(item['F_CheckColour']),
+              _checkColor(item['F_CheckColour']),
+            ),
+            buildBox(
+              'PAPER',
+              _checkLabel(item['F_CheckPaper']),
+              _checkColor(item['F_CheckPaper']),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  String _checkLabel(dynamic v) {
+    return (v == true || v?.toString().toLowerCase() == 'pass')
+        ? 'Pass'
+        : 'False';
+  }
+
+  Color _checkColor(dynamic v) {
+    return (v == true || v?.toString().toLowerCase() == 'pass')
+        ? Colors.green
+        : Colors.red;
   }
 
   void _showAlert(
@@ -402,56 +523,55 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
           }
         },
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.only(top: 4, bottom: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ✅ Dropdown อยู่ตรงนี้
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      height: 42,
-                      alignment: Alignment.centerLeft,
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        border: Border.all(color: Colors.black26),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        _barcodeController.text.isEmpty
-                            ? 'ยิงบาร์โค้ด ProcessOrderId'
-                            : _barcodeController.text,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  GestureDetector(
-                    onTap: () {
-                      final text = _barcodeController.text.trim();
-                      if (text.isNotEmpty) {
-                        _loadByProcessOrderId(text);
-                        _barcodeFocusNode.unfocus();
-                      }
-                    },
-                    child: Container(
-                      height: 42,
-                      width: 42,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1B1F2B),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.qr_code_scanner,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
+              // อันนี้ช่องสแกนพี่นกบอกให้เอาออกแต่มันรับค่าได้อยู่นะ
+              // Row(
+              //   children: [
+              //     Expanded(
+              //       child: Container(
+              //         height: 42,
+              //         alignment: Alignment.centerLeft,
+              //         padding: const EdgeInsets.symmetric(horizontal: 10),
+              //         decoration: BoxDecoration(
+              //           color: Colors.grey.shade100,
+              //           border: Border.all(color: Colors.black26),
+              //           borderRadius: BorderRadius.circular(8),
+              //         ),
+              //         child: Text(
+              //           _barcodeController.text.isEmpty
+              //               ? 'ยิงบาร์โค้ด ProcessOrderId'
+              //               : _barcodeController.text,
+              //         ),
+              //       ),
+              //     ),
+              //     const SizedBox(width: 6),
+              //     GestureDetector(
+              //       onTap: () {
+              //         final text = _barcodeController.text.trim();
+              //         if (text.isNotEmpty) {
+              //           _loadByProcessOrderId(text);
+              //           _barcodeFocusNode.unfocus();
+              //         }
+              //       },
+              //       child: Container(
+              //         height: 42,
+              //         width: 42,
+              //         decoration: BoxDecoration(
+              //           color: const Color(0xFF1B1F2B),
+              //           borderRadius: BorderRadius.circular(8),
+              //         ),
+              //         child: const Icon(
+              //           Icons.qr_code_scanner,
+              //           color: Colors.white,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              const SizedBox(height: 4),
 
               // ✅ แสดงข้อมูล
               Expanded(
@@ -459,8 +579,11 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                     _isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : _filteredData.isEmpty
-                        ? const Center(child: Text('ไม่พบข้อมูล'))
+                        ? const Center(
+                          child: Text('ไม่พบข้อมูลโปรดสแกน ProcessOrderId'),
+                        )
                         : ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
                           itemCount: _filteredData.length,
                           itemBuilder:
                               (context, index) =>
@@ -474,7 +597,7 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
 
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
