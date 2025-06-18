@@ -31,6 +31,15 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
   void initState() {
     super.initState();
     _loadPrinters();
+    _loadLastProcessOrderId(); // ✅ เรียกโหลดข้อมูลล่าสุดที่เคยใช้
+  }
+
+  Future<void> _loadLastProcessOrderId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastId = prefs.getString('F_ProcessOrderId');
+    if (lastId != null && lastId.trim().isNotEmpty) {
+      _loadByProcessOrderId(lastId);
+    }
   }
 
   Future<void> _loadPrinters() async {
@@ -191,6 +200,19 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
     }
   }
 
+  Color _parseRGB(dynamic rgbString) {
+    try {
+      final parts = rgbString.toString().split(',');
+      if (parts.length == 3) {
+        final r = int.parse(parts[0]);
+        final g = int.parse(parts[1]);
+        final b = int.parse(parts[2]);
+        return Color.fromRGBO(r, g, b, 1);
+      }
+    } catch (_) {}
+    return Colors.transparent;
+  }
+
   Widget _buildCard(Map<String, dynamic> item) {
     final formatter = DateFormat('dd/MM/yyyy');
     final imagePath = item['imagePath'] ?? '';
@@ -208,9 +230,7 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5)],
-        border: Border(
-          left: BorderSide(color: stationColor, width: 4),
-        ), // << ใช้ stationColor แทน
+        border: Border(left: BorderSide(color: stationColor, width: 4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,44 +254,104 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
           ),
           AutoSizeText(
             item['F_ProductName'] ?? '-',
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.normal, // เพิ่มได้ถ้าต้องการ
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
+            maxLines: 2,
+            minFontSize: 10,
+            overflow: TextOverflow.ellipsis,
+          ),
+          AutoSizeText.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text:
+                      'ประเภทพิมพ์ : ${item['F_Product_PrintTypeName'] ?? '-'}  ',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.black,
+                  ),
+                ),
+                TextSpan(
+                  text: 'เครื่อง : ${item['F_McName'] ?? '-'}',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
             ),
-            maxLines: 2, // ✅ จำกัดไม่เกิน 2 บรรทัด
-            minFontSize: 10, // ✅ ลดได้ถึงขนาดนี้เพื่อให้พอดี
-            overflow: TextOverflow.ellipsis, // ✅ ตัดข้อความท้ายสุดหากจำเป็น
+            maxLines: 1,
+            minFontSize: 10,
+            stepGranularity: 0.5,
+            overflow: TextOverflow.ellipsis,
           ),
-          Text(
-            'ประเภทพิมพ์ : ${item['F_Product_PrintTypeName'] ?? '-'}',
-            style: const TextStyle(fontSize: 13),
-          ),
+          const SizedBox(height: 4),
+
+          // Text(
+          //   'ประเภทพิมพ์ : ${item['F_Product_PrintTypeName'] ?? '-'}',
+          //   style: const TextStyle(fontSize: 13),
+          // ),
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //   children: [
+          //     Text(
+          //       'เครื่อง : ${item['F_McName'] ?? '-'}',
+          //       style: const TextStyle(fontSize: 13),
+          //     ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                'เครื่อง : ${item['F_McName'] ?? '-'}',
-                style: const TextStyle(fontSize: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _parseRGB(
+                          item['F_STTypeColourCode'],
+                        ).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'รหัสกระดาษ: ${item['F_STTypeIdFG'] ?? '-'}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: _parseRGB(item['F_STTypeColourCode']),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: stationColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  item['F_StationName'] ?? '-',
-                  style: TextStyle(color: stationColor),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: stationColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    item['F_StationName'] ?? '-',
+                    style: TextStyle(color: stationColor, fontSize: 14),
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
+
           _buildInfoGrid(item), // ✅ วางตรงนี้
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           GestureDetector(
             onTap: () => _showFullScreenImage(context, imagePath),
             child: ClipRRect(
@@ -372,7 +452,7 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
             buildBox(
               'ต้องผลิต',
               '${item['F_TotalQtyFGReal'] ?? '-'}',
-              Colors.green,
+              const Color(0xFF006400),
             ),
           ],
         ),
@@ -406,15 +486,31 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
   }
 
   String _checkLabel(dynamic v) {
-    return (v == true || v?.toString().toLowerCase() == 'pass')
-        ? 'Pass'
-        : 'False';
+    final s = v?.toString().toLowerCase();
+
+    if (s == 'pass') {
+      return 'Pass';
+    } else if (v == true || s == 'true' || s == '1') {
+      return 'True';
+    } else if (v == false || s == 'false' || s == '0') {
+      return 'False';
+    } else {
+      return '';
+    }
   }
 
   Color _checkColor(dynamic v) {
-    return (v == true || v?.toString().toLowerCase() == 'pass')
-        ? Colors.green
-        : Colors.red;
+    final s = v?.toString().toLowerCase();
+
+    if (s == 'pass') {
+      return const Color(0xFFDAA520); // ✅ เหลืองเข้ม (goldenrod)
+    } else if (v == true || s == 'true' || s == '1') {
+      return Colors.green; // ✅ เขียว
+    } else if (v == false || s == 'false' || s == '0') {
+      return Colors.red; // ✅ แดง
+    }
+
+    return Colors.grey;
   }
 
   void _showAlert(
@@ -439,7 +535,7 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
           title: Row(
             children: [
               Icon(icon, color: color),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
               Expanded(child: Text(title)),
             ],
           ),
@@ -496,12 +592,15 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () {
+            onPressed: () async {
               FocusScope.of(context).unfocus();
               final currentId = _barcodeController.text.trim();
+
               if (currentId.isNotEmpty) {
                 _loadByProcessOrderId(currentId);
               } else {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('F_ProcessOrderId'); //ล้างเฉพาะ
                 setState(() {
                   _filteredData.clear();
                   _isLoading = false;
@@ -673,7 +772,7 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                 },
               ),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               SizedBox(
                 height: 44,
                 child: ElevatedButton.icon(
