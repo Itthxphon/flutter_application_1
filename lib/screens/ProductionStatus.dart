@@ -26,6 +26,7 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
   bool _isLoading = false;
   List<Map<String, dynamic>> _printerOptions = [];
   String? _selectedPrinterId;
+  String _docTypeDisplay = 'ใบสั่งผลิต'; // ค่าเริ่มต้น
 
   @override
   void initState() {
@@ -626,50 +627,6 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // อันนี้ช่องสแกนพี่นกบอกให้เอาออกแต่มันรับค่าได้อยู่นะ
-              // Row(
-              //   children: [
-              //     Expanded(
-              //       child: Container(
-              //         height: 42,
-              //         alignment: Alignment.centerLeft,
-              //         padding: const EdgeInsets.symmetric(horizontal: 10),
-              //         decoration: BoxDecoration(
-              //           color: Colors.grey.shade100,
-              //           border: Border.all(color: Colors.black26),
-              //           borderRadius: BorderRadius.circular(8),
-              //         ),
-              //         child: Text(
-              //           _barcodeController.text.isEmpty
-              //               ? 'ยิงบาร์โค้ด ProcessOrderId'
-              //               : _barcodeController.text,
-              //         ),
-              //       ),
-              //     ),
-              //     const SizedBox(width: 6),
-              //     GestureDetector(
-              //       onTap: () {
-              //         final text = _barcodeController.text.trim();
-              //         if (text.isNotEmpty) {
-              //           _loadByProcessOrderId(text);
-              //           _barcodeFocusNode.unfocus();
-              //         }
-              //       },
-              //       child: Container(
-              //         height: 42,
-              //         width: 42,
-              //         decoration: BoxDecoration(
-              //           color: const Color(0xFF1B1F2B),
-              //           borderRadius: BorderRadius.circular(8),
-              //         ),
-              //         child: const Icon(
-              //           Icons.qr_code_scanner,
-              //           color: Colors.white,
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
               const SizedBox(height: 4),
 
               // ✅ แสดงข้อมูล
@@ -701,75 +658,206 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Builder(
-                builder: (context) {
-                  return GestureDetector(
-                    onTap: () {
-                      final RenderBox renderBox =
-                          context.findRenderObject() as RenderBox;
-                      final Offset offset = renderBox.localToGlobal(
-                        Offset.zero,
-                      );
+              Row(
+                children: [
+                  // 🔹 เครื่องพิมพ์ (ของจริง)
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // const Padding(
+                        //   padding: EdgeInsets.only(left: 4, bottom: 4),
+                        //   child: Text(
+                        //     'เครื่องพิมพ์ที่ใช้งานผลิต',
+                        //     style: TextStyle(
+                        //       fontSize: 13,
+                        //       fontWeight: FontWeight.bold,
+                        //       color: Colors.black87,
+                        //     ),
+                        //   ),
+                        // ),
+                        Builder(
+                          builder: (context) {
+                            return GestureDetector(
+                              onTap: () {
+                                final RenderBox renderBox =
+                                    context.findRenderObject() as RenderBox;
+                                final Offset offset = renderBox.localToGlobal(
+                                  Offset.zero,
+                                );
 
-                      showMenu<String>(
-                        context: context,
-                        position: RelativeRect.fromLTRB(
-                          offset.dx + renderBox.size.width - 200, // ชิดขวา
-                          offset.dy - (_printerOptions.length * 48), // เด้งขึ้น
-                          offset.dx + renderBox.size.width,
-                          offset.dy,
-                        ),
-                        items:
-                            _printerOptions.map((printer) {
-                              return PopupMenuItem<String>(
-                                value: printer['f_PrinterID']?.toString(),
-                                child: Text(
-                                  printer['f_PrinterName']?.toString() ??
-                                      'ไม่ทราบชื่อ',
-                                  style: const TextStyle(fontSize: 14),
+                                showMenu<String>(
+                                  context: context,
+                                  position: RelativeRect.fromLTRB(
+                                    offset.dx + renderBox.size.width - 200,
+                                    offset.dy - (_printerOptions.length * 48),
+                                    offset.dx + renderBox.size.width,
+                                    offset.dy,
+                                  ),
+                                  items:
+                                      _printerOptions.map((printer) {
+                                        return PopupMenuItem<String>(
+                                          value:
+                                              printer['f_PrinterID']
+                                                  ?.toString(),
+                                          child: Text(
+                                            printer['f_PrinterName']
+                                                    ?.toString() ??
+                                                'ไม่ทราบชื่อ',
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                ).then((selectedValue) {
+                                  if (selectedValue != null) {
+                                    setState(() {
+                                      _selectedPrinterId = selectedValue;
+                                    });
+                                  }
+                                });
+                              },
+                              child: Container(
+                                height: 44,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
                                 ),
-                              );
-                            }).toList(),
-                      ).then((selectedValue) {
-                        if (selectedValue != null) {
-                          setState(() {
-                            _selectedPrinterId = selectedValue;
-                          });
-                        }
-                      });
-                    },
-                    child: Container(
-                      height: 44,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.black26),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _printerOptions
-                                      .firstWhere(
-                                        (p) =>
-                                            p['f_PrinterID'] ==
-                                            _selectedPrinterId,
-                                        orElse: () => {},
-                                      )['f_PrinterName']
-                                      ?.toString() ??
-                                  'กรุณาเลือกเครื่องพิมพ์',
-                              style: const TextStyle(fontSize: 14),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const Icon(Icons.arrow_drop_up),
-                        ],
-                      ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border.all(color: Colors.black26),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        _printerOptions
+                                                .firstWhere(
+                                                  (p) =>
+                                                      p['f_PrinterID'] ==
+                                                      _selectedPrinterId,
+                                                  orElse: () => {},
+                                                )['f_PrinterName']
+                                                ?.toString() ??
+                                            'กรุณาเลือกเครื่องพิมพ์',
+                                        style: const TextStyle(fontSize: 14),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const Icon(Icons.arrow_drop_up),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
-                  );
-                },
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  // 🔹 จำลอง Dropdown ประเภทเอกสาร
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // const Padding(
+                        //   padding: EdgeInsets.only(left: 4, bottom: 4),
+                        //   child: Text(
+                        //     'ประเภทเอกสาร',
+                        //     style: TextStyle(
+                        //       fontSize: 13,
+                        //       fontWeight: FontWeight.bold,
+                        //       color: Colors.black87,
+                        //     ),
+                        //   ),
+                        // ),
+                        Builder(
+                          builder: (context) {
+                            return GestureDetector(
+                              onTap: () async {
+                                final renderBox =
+                                    context.findRenderObject() as RenderBox;
+                                final offset = renderBox.localToGlobal(
+                                  Offset.zero,
+                                );
+
+                                final selected = await showMenu<String>(
+                                  context: context,
+                                  position: RelativeRect.fromLTRB(
+                                    offset.dx + 10,
+                                    offset.dy -
+                                        (4 *
+                                            48), // เด้งขึ้น = จำนวนเมนู x ความสูงเมนู
+                                    offset.dx + renderBox.size.width,
+                                    offset.dy,
+                                  ),
+
+                                  items: const [
+                                    PopupMenuItem(
+                                      value: 'ใบทดแทน',
+                                      child: Text('ใบทดแทน'),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'ใบสั่งผลิต',
+                                      child: Text('ใบสั่งผลิต'),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'ใบขาด',
+                                      child: Text('ใบขาด'),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'ใบตัดแกน',
+                                      child: Text('ใบตัดแกน'),
+                                    ),
+                                  ],
+                                );
+
+                                if (selected != null) {
+                                  setState(() {
+                                    _docTypeDisplay = selected;
+                                  });
+                                }
+                              },
+
+                              child: Container(
+                                height: 44,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border.all(color: Colors.black26),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        _docTypeDisplay, // ✅ เปลี่ยนตามที่เลือก
+                                        style: const TextStyle(fontSize: 14),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const Icon(Icons.arrow_drop_down),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 4),
