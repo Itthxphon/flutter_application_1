@@ -287,7 +287,10 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                             final isChecked =
                                 checkStatus == 1 || checkStatus == '1';
                             final color = order['color'] ?? '';
+                            final pickedCount = order['pickedCount'] ?? 0;
                             final itemCount = order['itemCount'] ?? 0;
+                            final isPacked = pickedCount >= itemCount;
+                            final remainingItems = itemCount - pickedCount;
 
                             return GestureDetector(
                               onTap: () => _navigateToPickingList(orderNo),
@@ -350,38 +353,63 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                                       style: const TextStyle(fontSize: 13),
                                     ),
                                     const SizedBox(height: 6),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            isChecked
-                                                ? Colors.green.withOpacity(0.1)
-                                                : const Color(
-                                                  0xFFFFC1C1,
-                                                ).withOpacity(0.3),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Text(
-                                        isChecked
-                                            ? '✅ ตรวจสอบ SN ครบแล้ว'
-                                            : '⏳ รอตรวจสอบ SN',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color:
-                                              isChecked
-                                                  ? Colors.green
-                                                  : const Color.fromARGB(
-                                                    255,
-                                                    243,
-                                                    78,
-                                                    66,
-                                                  ),
+
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                (order['F_CheckSNStatus'] == 1
+                                                    ? Colors.green.withOpacity(
+                                                      0.1,
+                                                    )
+                                                    : const Color(
+                                                      0xFFFFC1C1,
+                                                    ).withOpacity(0.3)),
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            order['F_CheckSNStatus'] == 1
+                                                ? '✅ ตรวจสอบ SN ครบแล้ว'
+                                                : '⏳ รอตรวจสอบ SN',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color:
+                                                  order['F_CheckSNStatus'] == 1
+                                                      ? Colors.green
+                                                      : const Color.fromARGB(
+                                                        255,
+                                                        243,
+                                                        78,
+                                                        66,
+                                                      ),
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                        if (itemCount > 0)
+                                          Text(
+                                            isPacked
+                                                ? '📦 จัดของครบแล้ว'
+                                                : 'เหลือ $remainingItems รายการที่ยังไม่จัด',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color:
+                                                  isPacked
+                                                      ? Colors.green
+                                                      : Colors.orange,
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                   ],
                                 ),
