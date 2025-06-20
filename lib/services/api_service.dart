@@ -280,27 +280,23 @@ class ApiService {
     required String processOrderId,
     required String employeeName,
     required String printerId,
+    required String printReport, // เพิ่ม parameter นี้
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/print'),
+      Uri.parse('$baseUrl/api/print'), // แก้ path ให้ถูกต้อง
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'processOrderId': processOrderId,
         'employeeName': employeeName,
         'PrinterId': printerId,
+        'PrintReport': printReport, // เพิ่มค่านี้
       }),
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else if (response.statusCode == 409) {
-      throw Exception(
-        'มีรายการ print ที่ยังไม่สำเร็จอยู่แล้วสำหรับคำสั่งผลิตนี้',
-      );
-    } else if (response.statusCode == 400) {
-      throw Exception('กรุณาระบุ processOrderId, employeeName และ PrinterName');
+      return json.decode(response.body);
     } else {
-      throw Exception('เกิดข้อผิดพลาด: ${response.body}');
+      throw Exception('Print failed: ${response.body}');
     }
   }
 
