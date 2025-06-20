@@ -29,6 +29,40 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> updatePickupStatus({
+    required String saleOrderNo,
+    required int index,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/pickup'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'saleOrderNo': saleOrderNo, 'index': index}),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Update pickup failed: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> cancelPickupStatus({
+    required String saleOrderNo,
+    required int index,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/pickup-cancel'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'saleOrderNo': saleOrderNo, 'index': index}),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Cancel pickup failed: ${response.body}');
+    }
+  }
+
   static Future<Map<String, dynamic>> scanSN({
     required String saleOrderNo,
     required String productId,
@@ -139,10 +173,7 @@ class ApiService {
     final response = await http.post(
       uri,
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'productId': keyword,
-        'productName': keyword, // ✅ ค้นหาเฉพาะชื่อสินค้า
-      }),
+      body: jsonEncode({'productId': keyword, 'productName': keyword}),
     );
 
     if (response.statusCode == 200) {
