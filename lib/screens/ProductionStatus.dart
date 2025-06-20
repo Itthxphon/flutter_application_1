@@ -140,6 +140,13 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
     );
   }
 
+  final Map<String, String> _docTypes = {
+    'ใบทดแทน': 'Production_Replace',
+    'ใบสั่งผลิต': 'Production_Document',
+    'ใบขาด': 'Production_Missed',
+    'ใบตัดแกน': 'Production_CutCore',
+  };
+
   String _formatNumber(dynamic value) {
     try {
       final number = num.tryParse(value.toString().replaceAll(',', ''));
@@ -289,17 +296,6 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
           ),
           const SizedBox(height: 4),
 
-          // Text(
-          //   'ประเภทพิมพ์ : ${item['F_Product_PrintTypeName'] ?? '-'}',
-          //   style: const TextStyle(fontSize: 13),
-          // ),
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //   children: [
-          //     Text(
-          //       'เครื่อง : ${item['F_McName'] ?? '-'}',
-          //       style: const TextStyle(fontSize: 13),
-          //     ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -666,17 +662,6 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // const Padding(
-                        //   padding: EdgeInsets.only(left: 4, bottom: 4),
-                        //   child: Text(
-                        //     'เครื่องพิมพ์ที่ใช้งานผลิต',
-                        //     style: TextStyle(
-                        //       fontSize: 13,
-                        //       fontWeight: FontWeight.bold,
-                        //       color: Colors.black87,
-                        //     ),
-                        //   ),
-                        // ),
                         Builder(
                           builder: (context) {
                             return GestureDetector(
@@ -761,23 +746,11 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
 
                   const SizedBox(width: 12),
 
-                  // 🔹 จำลอง Dropdown ประเภทเอกสาร
                   Expanded(
                     flex: 2,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // const Padding(
-                        //   padding: EdgeInsets.only(left: 4, bottom: 4),
-                        //   child: Text(
-                        //     'ประเภทเอกสาร',
-                        //     style: TextStyle(
-                        //       fontSize: 13,
-                        //       fontWeight: FontWeight.bold,
-                        //       color: Colors.black87,
-                        //     ),
-                        //   ),
-                        // ),
                         Builder(
                           builder: (context) {
                             return GestureDetector(
@@ -889,15 +862,18 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                       return;
                     }
 
+                    final printReport =
+                        _docTypes[_docTypeDisplay] ?? 'Production_Document';
                     final apiService = ApiService();
+
                     try {
                       final result = await apiService.printAndLog(
                         processOrderId: processOrderId,
                         employeeName: employeeName,
                         printerId: _selectedPrinterId ?? '',
+                        printReport: printReport,
                       );
 
-                      // ✅ เช็คว่าข้อมูลที่ได้กลับมาเป็น Map และมี key 'alreadyPrinted'
                       if (result is Map<String, dynamic>) {
                         final alreadyPrinted = result['alreadyPrinted'] == true;
 
@@ -917,7 +893,6 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                           );
                         }
                       } else {
-                        // ถ้าไม่ได้ Map กลับมา
                         _showAlert(
                           'เกิดข้อผิดพลาด',
                           'ผลลัพธ์จากเซิร์ฟเวอร์ไม่ถูกต้อง',
@@ -927,7 +902,7 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                       }
                     } catch (e) {
                       _showAlert(
-                        'เคยพิมพ์ไปแล้ว',
+                        'เกิดข้อผิดพลาด',
                         'ใบกำกับการผลิต "$processOrderId"\nเคยถูกสั่งพิมพ์ไปแล้ว',
                         Icons.info_outline,
                         Colors.orange,

@@ -283,7 +283,7 @@ class ApiService {
     required String printReport, // เพิ่ม parameter นี้
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/api/print'), // แก้ path ให้ถูกต้อง
+      Uri.parse('$baseUrl/print'), // แก้ path ให้ถูกต้อง
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'processOrderId': processOrderId,
