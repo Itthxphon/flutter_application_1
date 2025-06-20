@@ -144,13 +144,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   });
                 },
               ),
-            ],
-          ),
-
-          ExpansionTile(
-            leading: const Icon(Icons.precision_manufacturing),
-            title: const Text('Production'),
-            children: [
               ListTile(
                 contentPadding: const EdgeInsets.only(left: 32),
                 leading: const Icon(Icons.inventory_2_rounded),
@@ -163,6 +156,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   });
                 },
               ),
+            ],
+          ),
+
+          ExpansionTile(
+            leading: const Icon(Icons.precision_manufacturing),
+            title: const Text('Production'),
+            children: [
               ListTile(
                 contentPadding: const EdgeInsets.only(left: 32),
                 leading: const Icon(Icons.factory_outlined),

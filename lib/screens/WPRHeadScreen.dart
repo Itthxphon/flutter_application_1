@@ -208,7 +208,7 @@ class _WPRHeadScreenState extends State<WPRHeadScreen> {
                                 margin:  EdgeInsets.only(left: 10),
                                 child: Text(
                                   soQty,
-                                  style: const TextStyle(fontSize: 13,color: Colors.yellow),
+                                  style: const TextStyle(fontSize: 13,color: Colors.yellow,fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ],
