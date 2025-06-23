@@ -149,8 +149,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.qr_code_scanner),
-            title: const Text('สแกน Stock'),
+            leading: const Icon(Icons.inventory),
+            title: const Text('จัดของ'),
             selected: _selectedIndex == 4,
             onTap: () {
               Navigator.pop(context);
@@ -158,7 +158,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 if (mounted) setState(() => _selectedIndex = 4);
               });
             },
-          ), // ✅ เพิ่มบรรทัดนี้
+          ),
 
           const Divider(),
           ListTile(

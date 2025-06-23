@@ -287,10 +287,7 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                             final isChecked =
                                 checkStatus == 1 || checkStatus == '1';
                             final color = order['color'] ?? '';
-                            final pickedCount = order['pickedCount'] ?? 0;
                             final itemCount = order['itemCount'] ?? 0;
-                            final isPacked = pickedCount >= itemCount;
-                            final remainingItems = itemCount - pickedCount;
 
                             return GestureDetector(
                               onTap: () => _navigateToPickingList(orderNo),
@@ -395,20 +392,6 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                                             ),
                                           ),
                                         ),
-                                        if (itemCount > 0)
-                                          Text(
-                                            isPacked
-                                                ? '📦 จัดของครบแล้ว'
-                                                : 'เหลือ $remainingItems รายการที่ยังไม่จัด',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color:
-                                                  isPacked
-                                                      ? Colors.green
-                                                      : Colors.orange,
-                                            ),
-                                          ),
                                       ],
                                     ),
                                   ],

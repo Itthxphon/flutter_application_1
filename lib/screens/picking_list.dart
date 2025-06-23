@@ -44,7 +44,6 @@ class _PickingListScreenState extends State<PickingListScreen> {
               )
               .length;
       item['scannedCount'] = count;
-      item['isPicked'] = item['F_Pickup'] == 1;
     }
 
     if (!mounted) return;
@@ -123,65 +122,6 @@ class _PickingListScreenState extends State<PickingListScreen> {
             ],
           ),
     );
-  }
-
-  void _handlePickup(Map<String, dynamic> item) async {
-    final saleOrderNo = item['F_SaleOrderNo'];
-    final index = int.tryParse(item['F_Index'].toString()) ?? 0;
-
-    if (item['isPicked'] == true) {
-      final confirm = await showDialog<bool>(
-        context: context,
-        builder:
-            (_) => AlertDialog(
-              title: Row(
-                children: const [
-                  Icon(Icons.info_outline, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text('ยืนยันการยกเลิก'),
-                ],
-              ),
-              content: const Text(
-                'ท่านต้องการยกเลิกการจัดสินค้านี้ใช่หรือไม่?',
-              ),
-              actions: [
-                TextButton(
-                  child: const Text('ยกเลิก'),
-                  onPressed: () => Navigator.pop(context, false),
-                ),
-                ElevatedButton(
-                  child: const Text('ตกลง'),
-                  onPressed: () => Navigator.pop(context, true),
-                ),
-              ],
-            ),
-      );
-
-      if (confirm != true) return;
-
-      final res = await ApiService.cancelPickupStatus(
-        saleOrderNo: saleOrderNo,
-        index: index,
-      );
-
-      if (res['isCompleted'] == false) {
-        setState(() {
-          item['isPicked'] = false;
-        });
-      }
-    } else {
-      final res = await ApiService.updatePickupStatus(
-        saleOrderNo: saleOrderNo,
-        index: index,
-      );
-
-      if (res['isCompleted'] == true) {
-        if (!mounted) return;
-        setState(() {
-          item['isPicked'] = true;
-        });
-      }
-    }
   }
 
   Widget _buildInfoBox(String title, String value, Color numberColor) {
@@ -423,77 +363,36 @@ class _PickingListScreenState extends State<PickingListScreen> {
                                               ],
                                             ),
                                             const SizedBox(height: 6),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Row(
-                                                  children: [
-                                                    const Text(
-                                                      'สถานะ : ',
-                                                      style: TextStyle(
-                                                        fontSize: 11,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      isComplete
-                                                          ? '✅ สแกนครบแล้ว'
-                                                          : '⌛ ยังสแกนไม่ครบ',
-                                                      style: TextStyle(
-                                                        fontSize: 11,
-                                                        color:
-                                                            isComplete
-                                                                ? Colors.green
-                                                                : Colors.orange,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                SizedBox(
-                                                  width: 90,
-                                                  height: 30,
-                                                  child: ElevatedButton(
-                                                    onPressed:
-                                                        () =>
-                                                            _handlePickup(item),
-                                                    style: ElevatedButton.styleFrom(
-                                                      backgroundColor:
-                                                          (item['isPicked'] ??
-                                                                  false)
-                                                              ? Colors.green
-                                                              : Colors.white,
-                                                      foregroundColor:
-                                                          (item['isPicked'] ??
-                                                                  false)
-                                                              ? Colors.white
-                                                              : Colors.black,
-
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            horizontal: 8,
-                                                          ),
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              6,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                    child: Text(
-                                                      (item['isPicked'] ??
-                                                              false)
-                                                          ? '✅ จัดของแล้ว'
-                                                          : '📦 จัดของ',
-                                                      style: const TextStyle(
-                                                        fontSize: 11,
-                                                      ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                right: 2,
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.end,
+                                                children: [
+                                                  const Text(
+                                                    'สถานะ : ',
+                                                    style: TextStyle(
+                                                      fontSize: 11,
                                                     ),
                                                   ),
-                                                ),
-                                              ],
+                                                  Text(
+                                                    isComplete
+                                                        ? '✅ สแกนครบแล้ว'
+                                                        : '⌛ ยังสแกนไม่ครบ',
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color:
+                                                          isComplete
+                                                              ? Colors.green
+                                                              : Colors.orange,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ],
                                         ),
