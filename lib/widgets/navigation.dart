@@ -5,6 +5,7 @@ import '../screens/login_screen.dart';
 import '../screens/ScanProductIdScreen.dart';
 import '../screens/ScanLocation.dart';
 import '../screens/ProductionStatus.dart';
+import '../screens/CheckStock.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
@@ -23,6 +24,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     'เปลี่ยนสถานที่',
     'ตรวจ Location',
     'สถานะการผลิต',
+    'สแกน Stock',
   ];
 
   late final List<Widget> _screens;
@@ -36,6 +38,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ScanProductIdScreen(scaffoldKey: _scaffoldKey),
       ScanLocationScreen(scaffoldKey: _scaffoldKey),
       ProductionStatusScreen(scaffoldKey: _scaffoldKey),
+      CheckStockScreen(scaffoldKey: _scaffoldKey),
     ];
   }
 
@@ -145,6 +148,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               });
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.qr_code_scanner),
+            title: const Text('สแกน Stock'),
+            selected: _selectedIndex == 4,
+            onTap: () {
+              Navigator.pop(context);
+              Future.delayed(const Duration(milliseconds: 300), () {
+                if (mounted) setState(() => _selectedIndex = 4);
+              });
+            },
+          ), // ✅ เพิ่มบรรทัดนี้
 
           const Divider(),
           ListTile(

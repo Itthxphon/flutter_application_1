@@ -312,4 +312,37 @@ class ApiService {
       throw Exception('Failed to load printers');
     }
   }
+
+  static Future<List<dynamic>> fetchOrdersAll() async {
+    final response = await http.get(Uri.parse('$baseUrl/getOrdersAll'));
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load orders');
+    }
+  }
+
+  // ดึงข้อมูลออเดอร์เดี่ยว
+  static Future<Map<String, dynamic>> fetchOrderAll(String saleOrderNo) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/getOrderAll/$saleOrderNo'),
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load order');
+    }
+  }
+
+  // ดึงรายละเอียดออเดอร์
+  static Future<List<dynamic>> fetchOrderAllDetails(String saleOrderNo) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/orderalldetail/$saleOrderNo'),
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load order details');
+    }
+  }
 }
