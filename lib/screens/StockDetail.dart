@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import 'login_screen.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class StockDetailScreen extends StatefulWidget {
   final String orderNo;
@@ -112,6 +113,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
     final index = int.tryParse(item['F_Index'].toString()) ?? 0;
 
     if (item['isPicked'] == true) {
+      // ยืนยันก่อนยกเลิกการจัดของ
       final confirm = await showDialog<bool>(
         context: context,
         builder:
@@ -141,26 +143,26 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
 
       if (confirm != true) return;
 
-      final res = await ApiService.cancelPickupStatus(
+      setState(() {
+        item['isPicked'] = false;
+      });
+
+      await ApiService.cancelPickupStatus(
         saleOrderNo: saleOrderNo,
         index: index,
       );
 
-      // ✅ เพื่อโหลดข้อมูลใหม่ในหน้านี้เท่านั้น (ไม่ pop)
-      if (res['isCompleted'] == true || res['isCompleted'] == false) {
-        if (!mounted) return;
-        await _loadItems();
-      }
+      if (!mounted) return;
+      await _loadItems();
     } else {
-      final res = await ApiService.updatePickupStatus(
+      setState(() {
+        item['isPicked'] = true;
+      });
+
+      await ApiService.updatePickupStatus(
         saleOrderNo: saleOrderNo,
         index: index,
       );
-
-      if (res['isCompleted'] == true) {
-        if (!mounted) return;
-        await _loadItems(); // ✅ โหลดข้อมูลใหม่ในหน้านี้
-      }
     }
   }
 
@@ -277,197 +279,180 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                                 ),
                               ],
                             ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            child: Stack(
                               children: [
-                                Column(
+                                // ✅ เนื้อหาทั้งหมด
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(6),
-                                      child: Image.network(
-                                        imagePath,
-                                        height: 90,
-                                        width: 90,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) {
-                                          return Image.asset(
-                                            'assets/images/no_image.png',
-                                            height: 90,
+                                    // รูป + Stock
+                                    Column(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                          child: SizedBox(
                                             width: 90,
-                                            fit: BoxFit.cover,
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Container(
-                                      width: 90,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 2,
-                                        horizontal: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(4),
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
+                                            height: 90,
+                                            child:
+                                                imagePath.isNotEmpty
+                                                    ? Image.network(
+                                                      imagePath,
+                                                      fit: BoxFit.cover,
+                                                      errorBuilder: (
+                                                        _,
+                                                        __,
+                                                        ___,
+                                                      ) {
+                                                        return Image.asset(
+                                                          'assets/images/no_image.png',
+                                                          fit: BoxFit.cover,
+                                                        );
+                                                      },
+                                                    )
+                                                    : Image.asset(
+                                                      'assets/images/no_image.png',
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                          ),
                                         ),
-                                      ),
+                                        const SizedBox(height: 4),
+                                        Container(
+                                          width: 90,
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 2,
+                                            horizontal: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.grey.shade300,
+                                            ),
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              const Text(
+                                                'Stock',
+                                                style: TextStyle(
+                                                  fontSize: 9,
+                                                  color: Colors.black87,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                              const SizedBox(height: 1),
+                                              Text(
+                                                '${item['F_StockBalance'] ?? '-'}',
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF006400),
+                                                ),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(width: 6),
+
+                                    // ข้อมูลสินค้า
+                                    Expanded(
                                       child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          const Text(
-                                            'Stock',
-                                            style: TextStyle(
-                                              fontSize: 9,
-                                              color: Colors.black87,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          const SizedBox(height: 1),
-                                          Text(
-                                            '${item['F_StockBalance'] ?? '-'}',
+                                          AutoSizeText(
+                                            '$productId - $description',
                                             style: const TextStyle(
-                                              fontSize: 11,
                                               fontWeight: FontWeight.bold,
-                                              color: Color(0xFF006400),
+                                              fontSize: 13,
                                             ),
-                                            textAlign: TextAlign.center,
+                                            maxLines: 2,
+                                            minFontSize: 10,
+                                            overflow: TextOverflow.visible,
                                           ),
+                                          const SizedBox(height: 6),
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: _buildInfoBox(
+                                                  'จำนวนเบิก',
+                                                  qty.toString(),
+                                                  const Color(0xFFFFA500),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Expanded(
+                                                child: _buildInfoBox(
+                                                  'สถานที่',
+                                                  item['F_Location']
+                                                          ?.toString() ??
+                                                      '-',
+                                                  const Color(0xFF1E90FF),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(
+                                            height: 36,
+                                          ), // เพื่อให้ไม่ชนปุ่ม
                                         ],
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '$productId - $description',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
+
+                                // ✅ ปุ่มล่างขวา
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: GestureDetector(
+                                    onTap: () => _handlePickup(item),
+                                    child: Container(
+                                      width: 90,
+                                      height: 30,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            (item['isPicked'] ?? false)
+                                                ? Colors.green
+                                                : Colors.white,
+                                        borderRadius: BorderRadius.circular(6),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                              0.1,
+                                            ),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                              0.05,
+                                            ),
+                                            blurRadius: 3,
+                                            offset: const Offset(0, -1),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Text(
+                                        (item['isPicked'] ?? false)
+                                            ? '✅ จัดของแล้ว'
+                                            : '📦 จัดของ',
+                                        style: TextStyle(
                                           fontSize: 11,
+                                          color:
+                                              (item['isPicked'] ?? false)
+                                                  ? Colors.white
+                                                  : Colors.black,
                                         ),
                                       ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'สถานที่ : ${item['F_Location'] ?? "-"}',
-                                        style: const TextStyle(fontSize: 11),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: _buildInfoBox(
-                                              'จำนวนเบิก',
-                                              qty.toString(),
-                                              const Color(0xFFFFA500),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Expanded(
-                                            child: _buildInfoBox(
-                                              'ยิง SN แล้ว',
-                                              scanned.toString(),
-                                              const Color(0xFF3CB043),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Expanded(
-                                            child: _buildInfoBox(
-                                              'ยังไม่ได้ยิง',
-                                              remaining.toString(),
-                                              const Color(0xFFFF0000),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              const Text(
-                                                'สถานะ : ',
-                                                style: TextStyle(fontSize: 11),
-                                              ),
-                                              Text(
-                                                isComplete
-                                                    ? '✅ สแกนครบแล้ว'
-                                                    : '⌛ ยังสแกนไม่ครบ',
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color:
-                                                      isComplete
-                                                          ? Colors.green
-                                                          : Colors.orange,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          SizedBox(
-                                            width: 90,
-                                            height: 30,
-                                            child: GestureDetector(
-                                              onTap: () => _handlePickup(item),
-                                              child: Container(
-                                                width: 90,
-                                                height: 30,
-                                                alignment: Alignment.center,
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      (item['isPicked'] ??
-                                                              false)
-                                                          ? Colors.green
-                                                          : Colors.white,
-                                                  borderRadius:
-                                                      BorderRadius.circular(6),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black
-                                                          .withOpacity(0.1),
-                                                      blurRadius: 4,
-                                                      offset: const Offset(
-                                                        0,
-                                                        2,
-                                                      ), // เงาล่างเด่น
-                                                    ),
-                                                    BoxShadow(
-                                                      color: Colors.black
-                                                          .withOpacity(0.05),
-                                                      blurRadius: 3,
-                                                      offset: const Offset(
-                                                        0,
-                                                        -1,
-                                                      ), // เงาบนบางเบา
-                                                    ),
-                                                  ],
-                                                ),
-
-                                                child: Text(
-                                                  (item['isPicked'] ?? false)
-                                                      ? '✅ จัดของแล้ว'
-                                                      : '📦 จัดของ',
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    color:
-                                                        (item['isPicked'] ??
-                                                                false)
-                                                            ? Colors.white
-                                                            : Colors.black,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ],
