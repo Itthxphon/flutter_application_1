@@ -3,7 +3,12 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const baseUrl = 'http://172.16.11.145:3000/api';
+
   // static const baseUrl = 'http://172.16.11.148:3000/api';
+
+  // static const baseUrl = 'http://172.16.11.145:3000/api';
+  // static const baseUrl = 'http://172.16.11.148:3000/api'; เก่ง
+
   // static const baseUrl = 'http://172.16.102.242:3000/api'; พี่นก
 
   static Future<List<dynamic>> getOrders({String? color}) async {
@@ -358,6 +363,27 @@ class ApiService {
       return null; // ไม่พบค่า default
     } else {
       throw Exception('Failed to fetch default printer');
+    }
+  }
+
+  static Future<List<dynamic>> getWprHead() async {
+    final url = Uri.parse('$baseUrl/wprHead');
+
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch WPR Head');
+    }
+  }
+
+  static Future<List<dynamic>> getWprDetail(String reqNo) async {
+    final uri = Uri.parse('$baseUrl/wprDetail/$reqNo'); // API path
+    final response = await http.get(uri);
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load WPR detail');
     }
   }
 }

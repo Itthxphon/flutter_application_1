@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../screens/WPRHeadScreen.dart';
 import '../screens/sale_orders.dart';
 import '../screens/login_screen.dart';
 import '../screens/ScanProductIdScreen.dart';
@@ -39,6 +40,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ScanLocationScreen(scaffoldKey: _scaffoldKey),
       ProductionStatusScreen(scaffoldKey: _scaffoldKey),
       CheckStockScreen(scaffoldKey: _scaffoldKey),
+      WPRHeadScreen(scaffoldKey: _scaffoldKey),
     ];
   }
 
@@ -104,49 +106,79 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               ],
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.list_alt),
-            title: const Text('เช็ค Serial Number'),
-            selected: _selectedIndex == 0,
-            onTap: () {
-              Navigator.pop(context);
-              Future.delayed(const Duration(milliseconds: 300), () {
-                if (mounted) setState(() => _selectedIndex = 0);
-              });
-            },
+
+          ExpansionTile(
+            leading: const Icon(Icons.warehouse),
+            title: const Text('Warehouse'),
+            children: [
+              ListTile(
+                contentPadding: const EdgeInsets.only(left: 32),
+                leading: const Icon(Icons.list_alt),
+                title: const Text('เช็ค Serial Number'),
+                selected: _selectedIndex == 0,
+                onTap: () {
+                  Navigator.pop(context);
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    if (mounted) setState(() => _selectedIndex = 0);
+                  });
+                },
+              ),
+              ListTile(
+                contentPadding: const EdgeInsets.only(left: 32),
+                leading: const Icon(Icons.edit_location_alt),
+                title: const Text('เปลี่ยนสถานที่'),
+                selected: _selectedIndex == 1,
+                onTap: () {
+                  Navigator.pop(context);
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    if (mounted) setState(() => _selectedIndex = 1);
+                  });
+                },
+              ),
+              ListTile(
+                contentPadding: const EdgeInsets.only(left: 32),
+                leading: const Icon(Icons.location_searching),
+                title: const Text('เช็คสินค้าในสถานที่'),
+                selected: _selectedIndex == 2,
+                onTap: () {
+                  Navigator.pop(context);
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    if (mounted) setState(() => _selectedIndex = 2);
+                  });
+                },
+              ),
+              ListTile(
+                contentPadding: const EdgeInsets.only(left: 32),
+                leading: const Icon(Icons.inventory_2_rounded),
+                title: const Text('รายการขอเบิกเพื่อผลิต'),
+                selected: _selectedIndex == 4,
+                onTap: () {
+                  Navigator.pop(context);
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    if (mounted) setState(() => _selectedIndex = 4);
+                  });
+                },
+              ),
+            ],
           ),
-          ListTile(
-            leading: const Icon(Icons.edit_location_alt),
-            title: const Text('เปลี่ยนสถานที่'),
-            selected: _selectedIndex == 1,
-            onTap: () {
-              Navigator.pop(context);
-              Future.delayed(const Duration(milliseconds: 300), () {
-                if (mounted) setState(() => _selectedIndex = 1);
-              });
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.location_searching),
-            title: const Text('เช็คสินค้าในสถานที่'),
-            selected: _selectedIndex == 2,
-            onTap: () {
-              Navigator.pop(context);
-              Future.delayed(const Duration(milliseconds: 300), () {
-                if (mounted) setState(() => _selectedIndex = 2);
-              });
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.factory_outlined),
-            title: const Text('สถานะการผลิต'),
-            selected: _selectedIndex == 3,
-            onTap: () {
-              Navigator.pop(context);
-              Future.delayed(const Duration(milliseconds: 300), () {
-                if (mounted) setState(() => _selectedIndex = 3);
-              });
-            },
+
+          ExpansionTile(
+            leading: const Icon(Icons.precision_manufacturing),
+            title: const Text('Production'),
+            children: [
+              ListTile(
+                contentPadding: const EdgeInsets.only(left: 32),
+                leading: const Icon(Icons.factory_outlined),
+                title: const Text('สถานะการผลิต'),
+                selected: _selectedIndex == 3,
+                onTap: () {
+                  Navigator.pop(context);
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    if (mounted) setState(() => _selectedIndex = 3);
+                  });
+                },
+              ),
+            ],
           ),
           ListTile(
             leading: const Icon(Icons.inventory),
@@ -161,6 +193,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
 
           const Divider(),
+
+          // ออกจากระบบ
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('ออกจากระบบ'),
