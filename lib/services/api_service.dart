@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const baseUrl = 'http://172.16.11.145:3000/api';
-  // static const baseUrl = 'http://172.16.11.148:3000/api'; เก่ง
+  // static const baseUrl = 'http://172.16.11.148:3000/api';
   // static const baseUrl = 'http://172.16.102.242:3000/api'; พี่นก
 
   static Future<List<dynamic>> getOrders({String? color}) async {
@@ -343,6 +343,21 @@ class ApiService {
       return json.decode(response.body);
     } else {
       throw Exception('Failed to load order details');
+    }
+  }
+
+  static Future<String?> getDefaultPrinter(String reportName) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/printerdefault/$reportName'),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['printerDefault'] as String?;
+    } else if (response.statusCode == 404) {
+      return null; // ไม่พบค่า default
+    } else {
+      throw Exception('Failed to fetch default printer');
     }
   }
 }

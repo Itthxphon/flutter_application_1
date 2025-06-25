@@ -406,12 +406,13 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center, // ✅ จัดตรงกลางแนวนอน
             children: [
               SizedBox(
-                height: 18, // ✅ กำหนดความสูงให้กล่องข้อความแน่นอน
+                height: 18,
                 child: AutoSizeText(
                   title,
+                  textAlign: TextAlign.center, // ✅ จัดข้อความตรงกลาง
                   style: const TextStyle(fontWeight: FontWeight.bold),
                   maxLines: 1,
                   minFontSize: 6,
@@ -420,9 +421,10 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
               ),
               const SizedBox(height: 4),
               SizedBox(
-                height: 20, // ✅ ความสูงสำหรับเลขหรือข้อความ value
+                height: 20,
                 child: AutoSizeText(
                   _formatNumber(value),
+                  textAlign: TextAlign.center, // ✅ จัดข้อความตรงกลาง
                   style: TextStyle(color: color, fontWeight: FontWeight.w600),
                   maxLines: 1,
                   minFontSize: 9,
@@ -625,7 +627,6 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
             children: [
               const SizedBox(height: 4),
 
-              // ✅ แสดงข้อมูล
               Expanded(
                 child:
                     _isLoading
@@ -656,7 +657,113 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
             children: [
               Row(
                 children: [
-                  // 🔹 เครื่องพิมพ์ (ของจริง)
+                  // 🔸 ประเภทเอกสาร (อยู่ซ้าย)
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Builder(
+                          builder: (context) {
+                            return GestureDetector(
+                              onTap: () async {
+                                final renderBox =
+                                    context.findRenderObject() as RenderBox;
+                                final offset = renderBox.localToGlobal(
+                                  Offset.zero,
+                                );
+
+                                final selected = await showMenu<String>(
+                                  context: context,
+                                  position: RelativeRect.fromLTRB(
+                                    offset.dx + 10,
+                                    offset.dy - (4 * 48),
+                                    offset.dx + renderBox.size.width,
+                                    offset.dy,
+                                  ),
+                                  items: const [
+                                    PopupMenuItem(
+                                      value: 'ใบทดแทน',
+                                      child: Text('ใบทดแทน'),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'ใบสั่งผลิต',
+                                      child: Text('ใบสั่งผลิต'),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'ใบขาด',
+                                      child: Text('ใบขาด'),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'ใบตัดแกน',
+                                      child: Text('ใบตัดแกน'),
+                                    ),
+                                  ],
+                                );
+
+                                if (selected != null) {
+                                  setState(() {
+                                    _docTypeDisplay = selected;
+                                  });
+
+                                  final reportName =
+                                      _docTypes[_docTypeDisplay] ??
+                                      'Production_Document';
+
+                                  try {
+                                    final defaultPrinterId =
+                                        await ApiService.getDefaultPrinter(
+                                          reportName,
+                                        ); // ✅ เรียกแบบ static
+
+                                    if (defaultPrinterId != null) {
+                                      setState(() {
+                                        _selectedPrinterId = defaultPrinterId;
+                                      });
+                                    }
+                                  } catch (e) {
+                                    debugPrint(
+                                      '❌ Error fetching default printer: $e',
+                                    );
+                                  }
+                                }
+                              },
+
+                              child: Container(
+                                height: 44,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border.all(color: Colors.black26),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        _docTypeDisplay,
+                                        style: const TextStyle(fontSize: 14),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const Icon(Icons.arrow_drop_down),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  // 🔹 เครื่องพิมพ์ (อยู่ขวา)
                   Expanded(
                     flex: 3,
                     child: Column(
@@ -734,93 +841,6 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                                       ),
                                     ),
                                     const Icon(Icons.arrow_drop_up),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(width: 12),
-
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Builder(
-                          builder: (context) {
-                            return GestureDetector(
-                              onTap: () async {
-                                final renderBox =
-                                    context.findRenderObject() as RenderBox;
-                                final offset = renderBox.localToGlobal(
-                                  Offset.zero,
-                                );
-
-                                final selected = await showMenu<String>(
-                                  context: context,
-                                  position: RelativeRect.fromLTRB(
-                                    offset.dx + 10,
-                                    offset.dy -
-                                        (4 *
-                                            48), // เด้งขึ้น = จำนวนเมนู x ความสูงเมนู
-                                    offset.dx + renderBox.size.width,
-                                    offset.dy,
-                                  ),
-
-                                  items: const [
-                                    PopupMenuItem(
-                                      value: 'ใบทดแทน',
-                                      child: Text('ใบทดแทน'),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'ใบสั่งผลิต',
-                                      child: Text('ใบสั่งผลิต'),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'ใบขาด',
-                                      child: Text('ใบขาด'),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'ใบตัดแกน',
-                                      child: Text('ใบตัดแกน'),
-                                    ),
-                                  ],
-                                );
-
-                                if (selected != null) {
-                                  setState(() {
-                                    _docTypeDisplay = selected;
-                                  });
-                                }
-                              },
-
-                              child: Container(
-                                height: 44,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(color: Colors.black26),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        _docTypeDisplay, // ✅ เปลี่ยนตามที่เลือก
-                                        style: const TextStyle(fontSize: 14),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    const Icon(Icons.arrow_drop_down),
                                   ],
                                 ),
                               ),
