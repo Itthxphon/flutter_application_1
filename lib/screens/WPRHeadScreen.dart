@@ -34,13 +34,16 @@ class _WPRHeadScreenState extends State<WPRHeadScreen> {
     }
   }
 
-  List<dynamic> get filteredWpr => _searchText.isEmpty
-      ? wprData
-      : wprData.where((item) {
-    final search = _searchText.toLowerCase();
-    return (item['F_WdProcessReqNo'] ?? '').toLowerCase().contains(search) ||
-        (item['F_CompanyName'] ?? '').toLowerCase().contains(search);
-  }).toList();
+  List<dynamic> get filteredWpr =>
+      _searchText.isEmpty
+          ? wprData
+          : wprData.where((item) {
+            final search = _searchText.toLowerCase();
+            return (item['F_WdProcessReqNo'] ?? '').toLowerCase().contains(
+                  search,
+                ) ||
+                (item['F_CompanyName'] ?? '').toLowerCase().contains(search);
+          }).toList();
 
   @override
   void initState() {
@@ -51,10 +54,37 @@ class _WPRHeadScreenState extends State<WPRHeadScreen> {
   void _pushWprID(String reqNo) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => WPRDetailScreen(reqNo: reqNo),
-      ),
+      MaterialPageRoute(builder: (context) => WPRDetailScreen(reqNo: reqNo)),
     ).then((_) => _fetchWprData());
+  }
+
+  Widget _buildInfoBox(String title, String value, Color numberColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 11, color: Colors.black87),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: numberColor,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -96,134 +126,163 @@ class _WPRHeadScreenState extends State<WPRHeadScreen> {
             ),
           ),
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : filteredWpr.isEmpty
-                ? const Center(child: Text('ไม่พบข้อมูลรายการขอเบิก'))
-                : RefreshIndicator(
-              onRefresh: _fetchWprData,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: filteredWpr.length,
-                itemBuilder: (context, index) {
-                  final item = filteredWpr[index];
-                  final reqNo = item['F_WdProcessReqNo'] ?? '';
-                  final rawDocDate = item['F_DocDate'] ?? '';
-                  final rawSendDate = item['F_SendDate'] ?? '';
-                  final soNo = item['F_SaleOrderNo'] ?? '';
-                  final customerID = item['F_CustomerId'] ?? '';
-                  final prefix = item['F_Prefix'] ?? '';
-                  final company = item['F_CompanyName'] ?? '';
-                  final soQtyRaw = item['F_QtySo'] ?? 0;
-                  final soQty = NumberFormat('#,###').format(soQtyRaw);
-                  final saleID = item['F_SalemanId'] ?? '';
-                  final saleName = item['F_SalemanName'] ?? '';
+            child:
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : filteredWpr.isEmpty
+                    ? const Center(child: Text('ไม่พบข้อมูลรายการขอเบิก'))
+                    : RefreshIndicator(
+                      onRefresh: _fetchWprData,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(12),
+                        itemCount: filteredWpr.length,
+                        itemBuilder: (context, index) {
+                          final item = filteredWpr[index];
+                          final reqNo = item['F_WdProcessReqNo'] ?? '';
+                          final rawDocDate = item['F_DocDate'] ?? '';
+                          final rawSendDate = item['F_SendDate'] ?? '';
+                          final soNo = item['F_SaleOrderNo'] ?? '';
+                          final customerID = item['F_CustomerId'] ?? '';
+                          final prefix = item['F_Prefix'] ?? '';
+                          final company = item['F_CompanyName'] ?? '';
+                          final soQtyRaw = item['F_QtySo'] ?? 0;
+                          final soQty = NumberFormat('#,###').format(soQtyRaw);
+                          final saleID = item['F_SalemanId'] ?? '';
+                          final saleName = item['F_SalemanName'] ?? '';
 
-
-                  if (rawDocDate != null) {
-                    try {
-                      final parsed = DateTime.parse(rawDocDate);
-                      docDate = DateFormat('dd/MM/yyyy HH:mm:ss').format(parsed);
-                    } catch (e) {
-                      print('Error parsing date: $e');
-                    }
-                  }
-                  if (rawSendDate != null) {
-                    try {
-                      final parsed = DateTime.parse(rawDocDate);
-                      sendDate = DateFormat('dd/MM/yyyy').format(parsed);
-                    } catch (e) {
-                      print('Error parsing date: $e');
-                    }
-                  }
-                  return GestureDetector(
-                    onTap: () => _pushWprID(item['F_WdProcessReqNo']),
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 6,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                        border: Border.all(
-                          color: Colors.grey.shade300,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'เลขใบขอเบิก : $reqNo',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          Text(
-                            'วันที่ออกเอกสาร : $docDate',
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                'ผู้ออกเอกสาร : $saleID : ',
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                              const SizedBox(width: 2),
-                              Text(
-                                '$saleName',
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                            ],
-                          ),
-                          Text(
-                            'รหัสลูกค้า : $customerID',
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                          Text(
-                            'ชื่อลูกค้า : $prefix $company',
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                          Text(
-                            'วันที่ต้องการ : $sendDate',
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                'SO : $soNo',
-                                style: const TextStyle(fontSize: 13,fontWeight: FontWeight.bold),
-                              ),
-                              Container(
-                                alignment: Alignment.center,
-                                width: 60,
-                                height: 20,
-                                color: Colors.black,
-                                margin:  EdgeInsets.only(left: 10),
-                                child: Text(
-                                  soQty,
-                                  style: const TextStyle(fontSize: 13,color: Colors.yellow,fontWeight: FontWeight.bold),
+                          if (rawDocDate != null) {
+                            try {
+                              final parsed = DateTime.parse(rawDocDate);
+                              docDate = DateFormat(
+                                'dd/MM/yyyy HH:mm:ss',
+                              ).format(parsed);
+                            } catch (e) {
+                              print('Error parsing date: $e');
+                            }
+                          }
+                          if (rawSendDate != null) {
+                            try {
+                              final parsed = DateTime.parse(rawDocDate);
+                              sendDate = DateFormat(
+                                'dd/MM/yyyy',
+                              ).format(parsed);
+                            } catch (e) {
+                              print('Error parsing date: $e');
+                            }
+                          }
+                          return GestureDetector(
+                            onTap: () => _pushWprID(item['F_WdProcessReqNo']),
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border(
+                                  left: BorderSide(
+                                    width: 5,
+                                    color: Colors.deepOrange,
+                                  ),
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.08),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.04),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, -2),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          // Text(
-                          //   'จำนวนที่เบิก : $qty',
-                          //   style: const TextStyle(fontSize: 13),
-                          // ),
-                        ],
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'เลขใบขอเบิก : $reqNo',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  Text(
+                                    'วันที่ออกเอกสาร : $docDate',
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'ผู้ออกเอกสาร : $saleID : ',
+                                        style: const TextStyle(fontSize: 13),
+                                      ),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        '$saleName',
+                                        style: const TextStyle(fontSize: 13),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    'รหัสลูกค้า : $customerID',
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                  Text(
+                                    'ชื่อลูกค้า : $prefix $company',
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                  Text(
+                                    'วันที่ต้องการ : $sendDate',
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'SO : $soNo',
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(width: 10),
+                                      Container(
+                                        child: _buildInfoBox(
+                                          'จำนวน',
+                                          soQty.toString(),
+                                          Colors.yellow,
+                                        ),
+                                      ),
+                                      // Container(
+                                      //   alignment: Alignment.center,
+                                      //   width: 60,
+                                      //   height: 20,
+                                      //   color: Colors.black,
+                                      //   margin: EdgeInsets.only(left: 10),
+                                      //   child: Text(
+                                      //     soQty,
+                                      //     style: const TextStyle(
+                                      //       fontSize: 13,
+                                      //       color: Colors.yellow,
+                                      //       fontWeight: FontWeight.bold,
+                                      //     ),
+                                      //   ),
+                                      // ),
+                                    ],
+                                  ),
+                                  // Text(
+                                  //   'จำนวนที่เบิก : $qty',
+                                  //   style: const TextStyle(fontSize: 13),
+                                  // ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                  );
-                },
-              ),
-            ),
           ),
         ],
       ),
