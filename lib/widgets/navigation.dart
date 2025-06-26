@@ -149,13 +149,25 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               ),
               ListTile(
                 contentPadding: const EdgeInsets.only(left: 32),
-                leading: const Icon(Icons.inventory_2_rounded),
-                title: const Text('รายการขอเบิกเพื่อผลิต'),
+                leading: const Icon(Icons.inventory),
+                title: const Text('จัดของ'),
                 selected: _selectedIndex == 4,
                 onTap: () {
                   Navigator.pop(context);
                   Future.delayed(const Duration(milliseconds: 300), () {
                     if (mounted) setState(() => _selectedIndex = 4);
+                  });
+                },
+              ),
+              ListTile(
+                contentPadding: const EdgeInsets.only(left: 32),
+                leading: const Icon(Icons.assignment),
+                title: const Text('รายการขอเบิกเพื่อผลิต'),
+                selected: _selectedIndex == 5,
+                onTap: () {
+                  Navigator.pop(context);
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    if (mounted) setState(() => _selectedIndex = 5);
                   });
                 },
               ),
@@ -179,17 +191,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 },
               ),
             ],
-          ),
-          ListTile(
-            leading: const Icon(Icons.inventory),
-            title: const Text('จัดของ'),
-            selected: _selectedIndex == 4,
-            onTap: () {
-              Navigator.pop(context);
-              Future.delayed(const Duration(milliseconds: 300), () {
-                if (mounted) setState(() => _selectedIndex = 4);
-              });
-            },
           ),
 
           const Divider(),
