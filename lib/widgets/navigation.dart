@@ -113,18 +113,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             children: [
               ListTile(
                 contentPadding: const EdgeInsets.only(left: 32),
-                leading: const Icon(Icons.list_alt),
-                title: const Text('เช็ค Serial Number'),
-                selected: _selectedIndex == 0,
-                onTap: () {
-                  Navigator.pop(context);
-                  Future.delayed(const Duration(milliseconds: 300), () {
-                    if (mounted) setState(() => _selectedIndex = 0);
-                  });
-                },
-              ),
-              ListTile(
-                contentPadding: const EdgeInsets.only(left: 32),
                 leading: const Icon(Icons.edit_location_alt),
                 title: const Text('เปลี่ยนสถานที่'),
                 selected: _selectedIndex == 1,
@@ -150,7 +138,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               ListTile(
                 contentPadding: const EdgeInsets.only(left: 32),
                 leading: const Icon(Icons.inventory),
-                title: const Text('จัดของ'),
+                title: const Text('[SO]รอจัดของ'),
                 selected: _selectedIndex == 4,
                 onTap: () {
                   Navigator.pop(context);
@@ -159,10 +147,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   });
                 },
               ),
+
+              ListTile(
+                contentPadding: const EdgeInsets.only(left: 32),
+                leading: const Icon(Icons.list_alt),
+                title: const Text('Check Serial Number'),
+                selected: _selectedIndex == 0,
+                onTap: () {
+                  Navigator.pop(context);
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    if (mounted) setState(() => _selectedIndex = 0);
+                  });
+                },
+              ),
               ListTile(
                 contentPadding: const EdgeInsets.only(left: 32),
                 leading: const Icon(Icons.assignment),
-                title: const Text('รายการขอเบิกเพื่อผลิต'),
+                title: const Text('[WPR]ใบขอเบิกสินค้าเพื่อผลิต'),
                 selected: _selectedIndex == 5,
                 onTap: () {
                   Navigator.pop(context);
