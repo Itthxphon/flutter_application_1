@@ -292,7 +292,7 @@ class _SaleOrdersScreenState extends State<SaleOrdersScreen> {
                             return GestureDetector(
                               onTap: () => _navigateToPickingList(orderNo),
                               child: Container(
-                                margin: const EdgeInsets.only(bottom: 12),
+                                margin: const EdgeInsets.only(bottom: 6),
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: Colors.white,

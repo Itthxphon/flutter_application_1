@@ -207,15 +207,21 @@ class _ScanLocationScreenState extends State<ScanLocationScreen> {
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 6,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
+
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

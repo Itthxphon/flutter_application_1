@@ -79,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     } catch (e) {
-      _showDialog('เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
+      _showDialog('ชื่อผู้ใช้ หรือรหัสผ่านไม่ถูกต้องกรุณากรอกอีกครั้ง');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -88,11 +88,11 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showDialog(
     String message, {
     bool isSuccess = false,
-    bool autoClose = false,
+    bool autoClose = true,
   }) {
-    showDialog(
+    final dialog = showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true, // 👈 กดที่ว่างก็ปิดได้
       builder:
           (_) => AlertDialog(
             contentPadding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
@@ -124,12 +124,21 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.of(context).pop(),
                 child: const Text('ตกลง'),
               ),
             ],
           ),
     );
+
+    // 👇 ปิดอัตโนมัติใน 2 วินาที
+    if (autoClose) {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (Navigator.canPop(context)) {
+          Navigator.of(context).pop();
+        }
+      });
+    }
   }
 
   @override

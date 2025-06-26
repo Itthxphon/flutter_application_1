@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
+import 'package:auto_size_text/auto_size_text.dart';
 import '../services/api_service.dart';
 import 'WPRDetailScreen.dart';
 
@@ -18,16 +18,40 @@ class _WPRHeadScreenState extends State<WPRHeadScreen> {
   String _searchText = '';
   String docDate = '-';
   String sendDate = '-';
+  int pendingCount = 0;
+  String? selectedColor;
 
   Future<void> _fetchWprData() async {
     try {
-      final data = await ApiService.getWprHead();
+      final data = await ApiService.getWprHead(); // ← ✅ เพิ่มบรรทัดนี้
+
+      final filtered =
+          data
+              .where(
+                (e) =>
+                    e['F_WdProcessReqNo'] != null &&
+                    (selectedColor == null || e['color'] == selectedColor),
+              )
+              .toList();
+
+      filtered.sort((a, b) {
+        final aDate =
+            DateTime.tryParse(a['F_SendDate'] ?? '') ?? DateTime(1900);
+        final bDate =
+            DateTime.tryParse(b['F_SendDate'] ?? '') ?? DateTime(1900);
+        return aDate.compareTo(bDate);
+      });
+      final pending = filtered.where((e) => e['F_IsChecked'] != 1).length;
+
+      if (!mounted) return;
       setState(() {
-        wprData = data;
+        wprData = filtered;
+        pendingCount = pending;
         _isLoading = false;
       });
     } catch (e) {
       print('Error: $e');
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -56,6 +80,131 @@ class _WPRHeadScreenState extends State<WPRHeadScreen> {
       context,
       MaterialPageRoute(builder: (context) => WPRDetailScreen(reqNo: reqNo)),
     ).then((_) => _fetchWprData());
+  }
+
+  void _showColorFilterMenu() {
+    final Map<String?, String> colors = {
+      null: 'ทั้งหมด',
+      'red': 'แดง',
+      'yellow': 'เหลือง',
+      'pink': 'ชมพู',
+      'blue': 'น้ำเงิน',
+      'purple': 'ม่วง',
+      'lightsky': 'ฟ้า',
+      'brown': 'น้ำตาล',
+      'lightgreen': 'เขียวอ่อน',
+      'green': 'เขียว',
+    };
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children:
+                colors.entries.map((entry) {
+                  final isSelected = selectedColor == entry.key;
+                  final colorDot = _mapColor(entry.key);
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                      setState(() {
+                        selectedColor = entry.key;
+                      });
+                      _fetchWprData();
+                    },
+                    child: Container(
+                      width: 104,
+                      height: 42,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color:
+                              isSelected
+                                  ? Colors.lightBlue
+                                  : Colors.grey.shade300,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          if (entry.key != null)
+                            Container(
+                              width: 12,
+                              height: 12,
+                              margin: const EdgeInsets.only(right: 6),
+                              decoration: BoxDecoration(
+                                color: colorDot,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          Flexible(
+                            child: Text(
+                              entry.value,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
+  Color _mapColor(String? color) {
+    switch (color) {
+      case 'red':
+        return const Color(0xFFFE0000);
+      case 'yellow':
+        return const Color(0xFFDAA521);
+      case 'pink':
+        return const Color(0xFFFF00FE);
+      case 'blue':
+        return const Color(0xFF0100F7);
+      case 'purple':
+        return const Color(0xFF81007F);
+      case 'lightsky':
+        return const Color(0xFF87CEEA);
+      case 'brown':
+        return const Color(0xFFB3440B);
+      case 'lightgreen':
+        return const Color(0xFF90EE90);
+      case 'green':
+        return const Color(0xFF008001);
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _formatDateTime(String? raw) {
+    if (raw == null) return '-';
+    try {
+      return DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.parse(raw));
+    } catch (e) {
+      return '-';
+    }
+  }
+
+  String _formatDate(String? raw) {
+    if (raw == null) return '-';
+    try {
+      return DateFormat('dd/MM/yyyy').format(DateTime.parse(raw));
+    } catch (e) {
+      return '-';
+    }
   }
 
   Widget _buildInfoBox(String title, String value, Color numberColor) {
@@ -95,25 +244,68 @@ class _WPRHeadScreenState extends State<WPRHeadScreen> {
         backgroundColor: const Color(0xFF1B1F2B),
         foregroundColor: Colors.white,
         centerTitle: true,
-        title: const FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            'รายการขอเบิกเพื่อผลิต',
-            style: TextStyle(
-              fontSize: 20, // 🔽 ขนาดพอดีกับ AppBar
-              fontWeight: FontWeight.normal, // ✅ ตัวบาง
-            ),
-          ),
+        title: const AutoSizeText(
+          '[WPR] ใบขอเบิก สินค้าเพื่อผลิต',
+          maxLines: 1,
+          minFontSize: 12,
+          maxFontSize: 22,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
+
         leading: IconButton(
           icon: const Icon(Icons.menu),
           onPressed: () => widget.scaffoldKey?.currentState?.openDrawer(),
         ),
+        actions: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications, size: 28),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('คุณมีงานค้างที่ยังไม่ตรวจ SN'),
+                    ),
+                  );
+                },
+              ),
+              if (pendingCount > 0)
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    alignment: Alignment.center,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      pendingCount > 99 ? '99+' : '$pendingCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          IconButton(
+            icon: const Icon(Icons.tune, size: 28),
+            onPressed: _showColorFilterMenu,
+          ),
+        ],
       ),
+
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(8),
             child: TextField(
               onChanged: (val) => setState(() => _searchText = val),
               decoration: InputDecoration(
@@ -134,13 +326,15 @@ class _WPRHeadScreenState extends State<WPRHeadScreen> {
                     : RefreshIndicator(
                       onRefresh: _fetchWprData,
                       child: ListView.builder(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(8),
                         itemCount: filteredWpr.length,
                         itemBuilder: (context, index) {
                           final item = filteredWpr[index];
                           final reqNo = item['F_WdProcessReqNo'] ?? '';
-                          final rawDocDate = item['F_DocDate'] ?? '';
-                          final rawSendDate = item['F_SendDate'] ?? '';
+                          final rawDocDate = item['F_DocDate'];
+                          final rawSendDate = item['F_SendDate'];
+                          final docDate = _formatDateTime(rawDocDate);
+                          final sendDate = _formatDate(rawSendDate);
                           final soNo = item['F_SaleOrderNo'] ?? '';
                           final customerID = item['F_CustomerId'] ?? '';
                           final prefix = item['F_Prefix'] ?? '';
@@ -150,28 +344,8 @@ class _WPRHeadScreenState extends State<WPRHeadScreen> {
                           final saleID = item['F_SalemanId'] ?? '';
                           final saleName = item['F_SalemanName'] ?? '';
 
-                          if (rawDocDate != null) {
-                            try {
-                              final parsed = DateTime.parse(rawDocDate);
-                              docDate = DateFormat(
-                                'dd/MM/yyyy HH:mm:ss',
-                              ).format(parsed);
-                            } catch (e) {
-                              print('Error parsing date: $e');
-                            }
-                          }
-                          if (rawSendDate != null) {
-                            try {
-                              final parsed = DateTime.parse(rawDocDate);
-                              sendDate = DateFormat(
-                                'dd/MM/yyyy',
-                              ).format(parsed);
-                            } catch (e) {
-                              print('Error parsing date: $e');
-                            }
-                          }
                           return GestureDetector(
-                            onTap: () => _pushWprID(item['F_WdProcessReqNo']),
+                            onTap: () => _pushWprID(reqNo),
                             child: Container(
                               margin: const EdgeInsets.only(bottom: 12),
                               padding: const EdgeInsets.all(12),
@@ -181,9 +355,10 @@ class _WPRHeadScreenState extends State<WPRHeadScreen> {
                                 border: Border(
                                   left: BorderSide(
                                     width: 5,
-                                    color: Colors.deepOrange,
+                                    color: _mapColor(item['color']),
                                   ),
                                 ),
+
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.08),
@@ -200,12 +375,26 @@ class _WPRHeadScreenState extends State<WPRHeadScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    'เลขใบขอเบิก : $reqNo',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'เลขใบขอเบิก : $reqNo',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      Text(
+                                        '$sendDate',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: _mapColor(item['color']),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   Text(
                                     'วันที่ออกเอกสาร : $docDate',
@@ -232,50 +421,26 @@ class _WPRHeadScreenState extends State<WPRHeadScreen> {
                                     'ชื่อลูกค้า : $prefix $company',
                                     style: const TextStyle(fontSize: 13),
                                   ),
-                                  Text(
-                                    'วันที่ต้องการ : $sendDate',
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
+                                  const SizedBox(height: 6),
                                   Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(
-                                        'SO : $soNo',
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.bold,
+                                      Expanded(
+                                        child: _buildInfoBox(
+                                          'SO',
+                                          soNo,
+                                          Colors.blue,
                                         ),
                                       ),
-                                      SizedBox(width: 10),
-                                      Container(
+                                      const SizedBox(width: 8),
+                                      Expanded(
                                         child: _buildInfoBox(
                                           'จำนวน',
                                           soQty.toString(),
-                                          Colors.yellow,
+                                          Colors.green,
                                         ),
                                       ),
-                                      // Container(
-                                      //   alignment: Alignment.center,
-                                      //   width: 60,
-                                      //   height: 20,
-                                      //   color: Colors.black,
-                                      //   margin: EdgeInsets.only(left: 10),
-                                      //   child: Text(
-                                      //     soQty,
-                                      //     style: const TextStyle(
-                                      //       fontSize: 13,
-                                      //       color: Colors.yellow,
-                                      //       fontWeight: FontWeight.bold,
-                                      //     ),
-                                      //   ),
-                                      // ),
                                     ],
                                   ),
-                                  // Text(
-                                  //   'จำนวนที่เบิก : $qty',
-                                  //   style: const TextStyle(fontSize: 13),
-                                  // ),
                                 ],
                               ),
                             ),

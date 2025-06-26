@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import '../services/api_service.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class WPRDetailScreen extends StatefulWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
@@ -28,13 +29,17 @@ class _WPRDetailScreenState extends State<WPRDetailScreen> {
   Future<void> fetchWprDetail() async {
     try {
       final data = await ApiService.getWprDetail(widget.reqNo);
-      setState(() {
-        detailList = data;
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          detailList = data;
+          isLoading = false;
+        });
+      }
     } catch (e) {
       print('Error: $e');
-      setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 
@@ -126,22 +131,22 @@ class _WPRDetailScreenState extends State<WPRDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
         centerTitle: true,
         foregroundColor: Colors.white,
-        title: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            'เลขที่ขอเบิก ${widget.reqNo}',
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
+        title: AutoSizeText(
+          'เลขที่ขอเบิก ${widget.reqNo}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          minFontSize: 14, // ตัวเล็กสุด
+          maxFontSize: 22, // ตัวใหญ่สุด
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
+
       body: Column(
         children: [
           Expanded(
@@ -153,7 +158,7 @@ class _WPRDetailScreenState extends State<WPRDetailScreen> {
                     : RefreshIndicator(
                       onRefresh: fetchWprDetail,
                       child: ListView.builder(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(8),
                         itemCount: detailList.length,
                         itemBuilder: (context, index) {
                           final item = detailList[index];
@@ -167,23 +172,25 @@ class _WPRDetailScreenState extends State<WPRDetailScreen> {
                           final imagePath = item['imagePath'] ?? '';
 
                           return Container(
-                            // margin: const EdgeInsets.only(bottom: 12),
-                            // padding: const EdgeInsets.all(12),
                             margin: const EdgeInsets.symmetric(vertical: 8),
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: const [
-                                BoxShadow(color: Colors.black12, blurRadius: 5),
-                              ],
-                              border: Border(
-                                left: BorderSide(
-                                  color: Colors.deepOrange,
-                                  width: 4,
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.08),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 3),
                                 ),
-                              ),
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.04),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, -2),
+                                ),
+                              ],
                             ),
+
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -214,6 +221,7 @@ class _WPRDetailScreenState extends State<WPRDetailScreen> {
                                     ],
                                   ),
                                 ),
+
                                 // Row(
                                 //   children: [
                                 //     Text(
@@ -253,12 +261,6 @@ class _WPRDetailScreenState extends State<WPRDetailScreen> {
                                 //     fontWeight: FontWeight.bold,
                                 //   ),
                                 // ),
-                                Text(
-                                  'ตำแหน่ง : $location',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
                                 RichText(
                                   text: TextSpan(
                                     style: const TextStyle(
@@ -283,20 +285,27 @@ class _WPRDetailScreenState extends State<WPRDetailScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    Container(
+                                    Flexible(
+                                      fit: FlexFit.tight,
+                                      child: _buildInfoBox(
+                                        'Location',
+                                        location,
+                                        Color(0xFF00008B),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      fit: FlexFit.tight,
                                       child: _buildInfoBox(
                                         'จำนวน',
-                                        '${qty.toString()} $unit',
-                                        Colors.yellow,
+                                        '$qty $unit',
+                                        Colors.green,
                                       ),
                                     ),
                                   ],
                                 ),
-                                // Text('จำนวน : $qty $unit'),
-                                // Text('ตำแหน่ง : $location'),
-                                // Text('หมายเหตุ : $remark'),
+
                                 const SizedBox(height: 8),
                                 GestureDetector(
                                   onTap:

@@ -134,7 +134,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
         title: 'เกิดข้อผิดพลาด',
         message: 'ไม่พบข้อมูลสินค้า',
         icon: Icons.info_outline,
-        color: Colors.orange,
+        color: Colors.red,
       );
     } finally {
       if (!mounted) return;

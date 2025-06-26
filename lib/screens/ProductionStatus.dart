@@ -382,6 +382,11 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
               ),
             ),
           ),
+
+          const SizedBox(height: 8), // ✅ เพิ่มช่องว่างก่อนกล่องใหม่
+          _buildCheckGrid(
+            item,
+          ), // ✅ กล่อง PLATE / BLOCK / COLOUR / PAPER ที่ย้ายมาหลังรูป
         ],
       ),
     );
@@ -406,13 +411,13 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center, // ✅ จัดตรงกลางแนวนอน
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(
                 height: 18,
                 child: AutoSizeText(
                   title,
-                  textAlign: TextAlign.center, // ✅ จัดข้อความตรงกลาง
+                  textAlign: TextAlign.center,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                   maxLines: 1,
                   minFontSize: 6,
@@ -424,7 +429,7 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
                 height: 20,
                 child: AutoSizeText(
                   _formatNumber(value),
-                  textAlign: TextAlign.center, // ✅ จัดข้อความตรงกลาง
+                  textAlign: TextAlign.center,
                   style: TextStyle(color: color, fontWeight: FontWeight.w600),
                   maxLines: 1,
                   minFontSize: 9,
@@ -437,48 +442,98 @@ class _ProductionStatusScreenState extends State<ProductionStatusScreen> {
       );
     }
 
-    return Column(
+    return Row(
       children: [
-        Row(
-          children: [
-            buildBox(
-              'สั่งผลิต',
-              '${item['F_TotalQtyFG'] ?? '-'}',
-              Colors.deepPurple,
-            ),
-            buildBox('SO', '${item['F_QtySaleOrder'] ?? '-'}', Colors.indigo),
-            buildBox('WP', '${item['F_WPQTY'] ?? '-'}', Colors.orange),
-            buildBox(
-              'ต้องผลิต',
-              '${item['F_TotalQtyFGReal'] ?? '-'}',
-              const Color(0xFF006400),
-            ),
-          ],
+        buildBox(
+          'สั่งผลิต',
+          '${item['F_TotalQtyFG'] ?? '-'}',
+          Colors.deepPurple,
         ),
+        buildBox('SO', '${item['F_QtySaleOrder'] ?? '-'}', Colors.indigo),
+        buildBox('WP', '${item['F_WPQTY'] ?? '-'}', Colors.orange),
+        buildBox(
+          'ต้องผลิต',
+          '${item['F_TotalQtyFGReal'] ?? '-'}',
+          const Color(0xFF006400),
+        ),
+      ],
+    );
+  }
 
-        Row(
-          children: [
-            buildBox(
-              'PLATE',
-              _checkLabel(item['F_CheckPlate']),
-              _checkColor(item['F_CheckPlate']),
-            ),
-            buildBox(
-              'BLOCK',
-              _checkLabel(item['F_CheckBlock']),
-              _checkColor(item['F_CheckBlock']),
-            ),
-            buildBox(
-              'COLOUR',
-              _checkLabel(item['F_CheckColour']),
-              _checkColor(item['F_CheckColour']),
-            ),
-            buildBox(
-              'PAPER',
-              _checkLabel(item['F_CheckPaper']),
-              _checkColor(item['F_CheckPaper']),
-            ),
-          ],
+  Widget _buildCheckGrid(Map<String, dynamic> item) {
+    Widget buildBox(String title, dynamic rawValue, Color color) {
+      final label = _checkLabel(
+        rawValue,
+      ); // ✅ ป้องกัน bool ไปเข้าฟังก์ชัน string โดยตรง
+
+      return Expanded(
+        child: Container(
+          margin: const EdgeInsets.all(4),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 4,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 18,
+                child: AutoSizeText(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  minFontSize: 6,
+                  stepGranularity: 0.5,
+                ),
+              ),
+              const SizedBox(height: 4),
+              SizedBox(
+                height: 20,
+                child: AutoSizeText(
+                  label, // ✅ ใช้ label ที่แปลงแล้ว
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: color, fontWeight: FontWeight.w600),
+                  maxLines: 1,
+                  minFontSize: 9,
+                  stepGranularity: 0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        buildBox(
+          'PLATE',
+          item['F_CheckPlate'],
+          _checkColor(item['F_CheckPlate']),
+        ),
+        buildBox(
+          'BLOCK',
+          item['F_CheckBlock'],
+          _checkColor(item['F_CheckBlock']),
+        ),
+        buildBox(
+          'COLOUR',
+          item['F_CheckColour'],
+          _checkColor(item['F_CheckColour']),
+        ),
+        buildBox(
+          'PAPER',
+          item['F_CheckPaper'],
+          _checkColor(item['F_CheckPaper']),
         ),
       ],
     );

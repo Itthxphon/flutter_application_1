@@ -138,7 +138,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               ListTile(
                 contentPadding: const EdgeInsets.only(left: 32),
                 leading: const Icon(Icons.inventory),
-                title: const Text('[SO]รอจัดของ'),
+                title: const Text('[SO] รอจัดของ'),
                 selected: _selectedIndex == 4,
                 onTap: () {
                   Navigator.pop(context);
@@ -163,7 +163,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               ListTile(
                 contentPadding: const EdgeInsets.only(left: 32),
                 leading: const Icon(Icons.assignment),
-                title: const Text('[WPR]ใบขอเบิกสินค้าเพื่อผลิต'),
+                title: const Text('[WPR] ใบขอเบิกสินค้าเพื่อผลิต'),
                 selected: _selectedIndex == 5,
                 onTap: () {
                   Navigator.pop(context);
