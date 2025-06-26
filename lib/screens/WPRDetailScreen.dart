@@ -63,12 +63,11 @@ class _WPRDetailScreenState extends State<WPRDetailScreen> {
               minScale: 1,
               maxScale: 5,
               child: SizedBox.expand(
-                // ✅ กินทั้งจอ
                 child:
                     imageUrl.startsWith('http')
                         ? CachedNetworkImage(
                           imageUrl: imageUrl,
-                          fit: BoxFit.contain, // ✅ ปรับเป็น cover ได้ถ้าต้องการ
+                          fit: BoxFit.contain,
                           errorWidget:
                               (context, url, error) => Image.asset(
                                 'assets/images/pp.png',

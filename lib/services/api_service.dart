@@ -3,10 +3,6 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const baseUrl = 'http://172.16.11.145:3000/api';
-
-  // static const baseUrl = 'http://172.16.11.148:3000/api';
-
-  // static const baseUrl = 'http://172.16.11.145:3000/api';
   // static const baseUrl = 'http://172.16.11.148:3000/api'; เก่ง
 
   // static const baseUrl = 'http://172.16.102.242:3000/api'; พี่นก
