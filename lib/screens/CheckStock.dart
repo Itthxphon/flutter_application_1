@@ -25,9 +25,13 @@ class _CheckStockScreenState extends State<CheckStockScreen> {
   }
 
   Future<void> _fetchOrders() async {
+    if (!mounted) return; // ✅ กันไว้ตั้งแต่ต้นกรณี async แรกๆ
+
     setState(() => _isLoading = true);
     try {
       final data = await ApiService.fetchOrdersAll();
+
+      if (!mounted) return; // ✅ หลัง await เพื่อกัน state ที่ถูก dispose ไป
 
       final pending = data.where((o) => o['F_CheckSNStatus'] != 1).length;
 
@@ -44,13 +48,17 @@ class _CheckStockScreenState extends State<CheckStockScreen> {
               ? data
               : data.where((o) => o['color'] == selectedColor).toList();
 
+      if (!mounted) return; // ✅ อีกจุดก่อน setState หลัก
+
       setState(() {
         allOrders = filteredByColor;
         pendingCount = pending;
-        _filterOrdersByColor(); // ถ้ามีฟังก์ชันนี้สำหรับกรองแสดงผล
+        _filterOrdersByColor();
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return; // ✅ ป้องกันก่อน setState ใน catch
+
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(
         context,

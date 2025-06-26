@@ -314,8 +314,6 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
 
     if (newLocation.isEmpty) return;
 
-    print('🔍 newLocation = $newLocation'); // ✅ เพิ่มบรรทัดนี้เพื่อ debug
-
     try {
       final result = await ApiService.changeLocation(
         productId: productId,
@@ -336,7 +334,7 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
 
       if (mounted) {
         _showProductAlertDialog(
-          title: '✅ แจ้งเตือน',
+          title: ' แจ้งเตือน',
           message: result['message'] ?? 'เปลี่ยนสถานที่สำเร็จ',
           icon: Icons.check_circle_outline,
           color: Colors.green,
@@ -347,9 +345,11 @@ class _ScanProductIdScreenState extends State<ScanProductIdScreen> {
     } catch (_) {
       if (mounted) {
         _showProductAlertDialog(
-          title: '❌ ผิดพลาด',
+          title: ' ผิดพลาด',
           message: 'ไม่พบสถานที่ในระบบ',
           autoClose: true,
+          icon: Icons.error_outline,
+          color: Colors.red,
         );
       }
     }

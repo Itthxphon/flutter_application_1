@@ -214,7 +214,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
             ),
           ),
         ),
-        // ✅ ปุ่ม back ที่ส่ง true กลับหน้า CheckStockScreen
+
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context, true),

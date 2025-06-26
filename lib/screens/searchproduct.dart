@@ -227,7 +227,7 @@ class _SearchProductScreenState extends State<SearchProductScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
 
               if (_isLoading)
                 const CircularProgressIndicator()
@@ -251,16 +251,20 @@ class _SearchProductScreenState extends State<SearchProductScreen> {
                       return GestureDetector(
                         onTap: () => _selectProduct(item),
                         child: Container(
-                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 3,
+                            horizontal: 6,
+                          ),
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(10),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 2,
-                                offset: const Offset(0, 1),
+                                color: Colors.black.withOpacity(0.08),
+                                blurRadius: 4,
+                                spreadRadius: 0.5,
+                                offset: Offset(0, 0),
                               ),
                             ],
                           ),
