@@ -79,7 +79,8 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     } catch (e) {
-      _showDialog('ชื่อผู้ใช้ หรือรหัสผ่านไม่ถูกต้องกรุณากรอกอีกครั้ง');
+      // _showDialog('ชื่อผู้ใช้ หรือรหัสผ่านไม่ถูกต้องกรุณากรอกอีกครั้ง');
+      _showDialog('การเชื่อมต่อเครือข่ายมีปัญหา กรุณาลองอีกครั้ง');
     } finally {
       setState(() => _isLoading = false);
     }
